@@ -1,22 +1,89 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export default function AssetDetail({ asset, onBack }) {
-  // 프리뷰어 애니메이션 컨트롤 상태
   const [isPlaying, setIsPlaying] = useState(true);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [time, setTime] = useState(0);
+
+  const isPlayingRef = useRef(isPlaying);
+  const speedRef = useRef(playbackSpeed);
+
+  useEffect(() => {
+    isPlayingRef.current = isPlaying;
+    speedRef.current = playbackSpeed;
+  }, [isPlaying, playbackSpeed]);
+
+  // RequestAnimationFrame을 활용한 60fps 정밀 좌표 동기화 (Kinematic Chain)
+  useEffect(() => {
+    let frameId;
+    let lastTime = performance.now();
+
+    const loop = (now) => {
+      const dt = (now - lastTime) / 1000;
+      lastTime = now;
+      if (isPlayingRef.current) {
+        setTime((prevTime) => prevTime + dt * speedRef.current);
+      }
+      frameId = requestAnimationFrame(loop);
+    };
+
+    frameId = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(frameId);
+  }, []);
 
   if (!asset) return null;
 
-  // 인라인 스타일: 애니메이션 상태 제어
-  const animationStyle = {
-    animationPlayState: isPlaying ? 'running' : 'paused',
-    animationDuration: `${3 / playbackSpeed}s` // 기본 3초를 기준 배속으로 분할
-  };
+  // 수학적 기구학(Kinematics) 기반 궤적 계산
+  const f = time * 3; // 기본 진동 주파수
 
-  const reverseAnimationStyle = {
-    animationPlayState: isPlaying ? 'running' : 'paused',
-    animationDuration: `${4 / playbackSpeed}s` // 기본 4초
-  };
+  // 기본 스켈레톤 노드 좌표
+  const headY = -100;
+  const shoulderY = -50;
+  const pelvisY = 60;
+
+  // 1. 오른팔 (Right Arm)
+  const rArmL1 = 80; // 상박
+  const rArmL2 = 70; // 하박
+  const rShoulderAngle = Math.sin(f) * 0.8;
+  const rElbowRel = Math.min(0, Math.cos(f)) * 1.5; // 팔꿈치는 안쪽으로만 굽힘
+  
+  const rElbowX = rArmL1 * Math.sin(rShoulderAngle);
+  const rElbowY = shoulderY + rArmL1 * Math.cos(rShoulderAngle);
+  const rHandX = rElbowX + rArmL2 * Math.sin(rShoulderAngle + rElbowRel);
+  const rHandY = rElbowY + rArmL2 * Math.cos(rShoulderAngle + rElbowRel);
+
+  // 2. 왼팔 (Left Arm)
+  const lArmL1 = 80;
+  const lArmL2 = 70;
+  const lShoulderAngle = -Math.sin(f) * 0.8;
+  const lElbowRel = Math.min(0, -Math.cos(f)) * 1.5;
+
+  const lElbowX = lArmL1 * Math.sin(lShoulderAngle);
+  const lElbowY = shoulderY + lArmL1 * Math.cos(lShoulderAngle);
+  const lHandX = lElbowX + lArmL2 * Math.sin(lShoulderAngle + lElbowRel);
+  const lHandY = lElbowY + lArmL2 * Math.cos(lShoulderAngle + lElbowRel);
+
+  // 3. 오른다리 (Right Leg)
+  const rLegL1 = 100; // 허벅지
+  const rLegL2 = 90;  // 종아리
+  const rHipAngle = -Math.sin(f) * 0.8;
+  const rKneeRel = Math.max(0, -Math.cos(f)) * 1.8; // 무릎은 바깥(뒤)으로만 굽힘
+
+  const rKneeX = rLegL1 * Math.sin(rHipAngle);
+  const rKneeY = pelvisY + rLegL1 * Math.cos(rHipAngle);
+  const rFootX = rKneeX + rLegL2 * Math.sin(rHipAngle + rKneeRel);
+  const rFootY = rKneeY + rLegL2 * Math.cos(rHipAngle + rKneeRel);
+
+  // 4. 왼다리 (Left Leg)
+  const lLegL1 = 100;
+  const lLegL2 = 90;
+  const lHipAngle = Math.sin(f) * 0.8;
+  const lKneeRel = Math.max(0, Math.cos(f)) * 1.8;
+
+  const lKneeX = lLegL1 * Math.sin(lHipAngle);
+  const lKneeY = pelvisY + lLegL1 * Math.cos(lHipAngle);
+  const lFootX = lKneeX + lLegL2 * Math.sin(lHipAngle + lKneeRel);
+  const lFootY = lKneeY + lLegL2 * Math.cos(lHipAngle + lKneeRel);
 
   return (
     <div className="space-y-10 animate-fade-in max-w-6xl mx-auto transition-colors duration-500 pb-20">
@@ -29,110 +96,124 @@ export default function AssetDetail({ asset, onBack }) {
         대시보드로 돌아가기
       </button>
 
-      {/* 키네틱 데이터 프리뷰어 영역 */}
-      <div className="relative w-full h-[400px] md:h-[500px] bg-slate-900 dark:bg-black rounded-[2.5rem] overflow-hidden shadow-2xl dark:shadow-[0_20px_50px_rgba(0,0,0,0.8)] border border-slate-700/50 dark:border-white/[0.05] mb-12 flex items-center justify-center group">
+      {/* 키네틱 데이터 프리뷰어 영역 (동적 좌표 바인딩 적용) */}
+      <div className="relative w-full h-[450px] md:h-[550px] bg-[#050505] rounded-[2.5rem] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-slate-800 dark:border-white/[0.08] mb-12 flex items-center justify-center group">
         
-        {/* 사이버틱 배경 격자 무늬 */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080801a_1px,transparent_1px),linear-gradient(to_bottom,#8080801a_1px,transparent_1px)] bg-[size:24px_24px] opacity-50"></div>
+        {/* 사이버틱 배경 캔버스 그리드 */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:30px_30px] opacity-70"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30"></div>
         
-        {/* SVG 애니메이션 캔버스 */}
+        {/* SVG 애니메이션 캔버스 (Kinematic Chain) */}
         <svg width="100%" height="100%" viewBox="0 0 800 500" className="absolute z-10">
           <defs>
-            {/* 은은한 네온 글로우 필터 */}
-            <filter id="neonGlow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="6" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            {/* 은은한 네온 글로우 섀도우 필터 */}
+            <filter id="neonGlowBlue" x="-100%" y="-100%" width="300%" height="300%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur1" />
+              <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur2" />
+              <feMerge>
+                <feMergeNode in="blur2" />
+                <feMergeNode in="blur1" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
             </filter>
-            <filter id="neonGlowPurple" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="8" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            
+            <filter id="neonGlowPurple" x="-100%" y="-100%" width="300%" height="300%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur1" />
+              <feGaussianBlur in="SourceGraphic" stdDeviation="15" result="blur2" />
+              <feMerge>
+                <feMergeNode in="blur2" />
+                <feMergeNode in="blur1" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+
+            <filter id="neonGlowCyan" x="-100%" y="-100%" width="300%" height="300%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur1" />
+              <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur2" />
+              <feMerge>
+                <feMergeNode in="blur2" />
+                <feMergeNode in="blur1" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
             </filter>
           </defs>
           
           <g transform="translate(400, 250)">
-            {/* 코어 중심 (어깨/골반 등 기점) */}
-            <circle cx="0" cy="0" r="10" fill="#3b82f6" filter="url(#neonGlow)" className="animate-pulse" />
             
-            {/* 오른쪽 팔 뼈대 그룹 */}
-            <g className="bone-arm1" style={{...animationStyle, transformOrigin: '0px 0px'}}>
-              <line x1="0" y1="0" x2="0" y2="120" stroke="#3b82f6" strokeWidth="5" strokeLinecap="round" strokeOpacity="0.8" filter="url(#neonGlow)" />
-              <circle cx="0" cy="120" r="8" fill="#06b6d4" filter="url(#neonGlow)" />
-              
-              {/* 오른쪽 하박 뼈대 그룹 */}
-              <g className="bone-arm2" style={{...animationStyle, transformOrigin: '0px 120px'}}>
-                <line x1="0" y1="120" x2="0" y2="220" stroke="#06b6d4" strokeWidth="4" strokeLinecap="round" strokeOpacity="0.6" filter="url(#neonGlow)" />
-                <circle cx="0" cy="220" r="6" fill="#a855f7" filter="url(#neonGlowPurple)" />
-                
-                {/* 궤적 패스 애니메이션 */}
-                <path d="M 0 220 Q 25 250 -15 280 M 0 220 Q -25 240 10 270" stroke="#a855f7" strokeWidth="2" fill="none" strokeOpacity="0.4" className="bone-hand" style={animationStyle} filter="url(#neonGlowPurple)" />
-              </g>
+            {/* 백그라운드 레이어 (왼쪽 팔/다리 - 약간 투명하고 얇게 처리하여 깊이감 조성) */}
+            <g opacity="0.6">
+              {/* 왼쪽 다리 뼈대 */}
+              <line x1="0" y1={pelvisY} x2={lKneeX} y2={lKneeY} stroke="#a855f7" strokeWidth="6" strokeLinecap="round" filter="url(#neonGlowPurple)" />
+              <line x1={lKneeX} y1={lKneeY} x2={lFootX} y2={lFootY} stroke="#c084fc" strokeWidth="4" strokeLinecap="round" filter="url(#neonGlowPurple)" />
+              {/* 왼쪽 다리 관절 */}
+              <circle cx={lKneeX} cy={lKneeY} r="5" fill="#f3e8ff" filter="url(#neonGlowPurple)" />
+              <circle cx={lFootX} cy={lFootY} r="4" fill="#f3e8ff" filter="url(#neonGlowPurple)" />
+
+              {/* 왼쪽 팔 뼈대 */}
+              <line x1="0" y1={shoulderY} x2={lElbowX} y2={lElbowY} stroke="#06b6d4" strokeWidth="5" strokeLinecap="round" filter="url(#neonGlowCyan)" />
+              <line x1={lElbowX} y1={lElbowY} x2={lHandX} y2={lHandY} stroke="#22d3ee" strokeWidth="3" strokeLinecap="round" filter="url(#neonGlowCyan)" />
+              {/* 왼쪽 팔 관절 */}
+              <circle cx={lElbowX} cy={lElbowY} r="4" fill="#cffafe" filter="url(#neonGlowCyan)" />
+              <circle cx={lHandX} cy={lHandY} r="3" fill="#cffafe" filter="url(#neonGlowCyan)" />
             </g>
+
+            {/* 몸통 (척추) */}
+            <line x1="0" y1={shoulderY} x2="0" y2={pelvisY} stroke="#3b82f6" strokeWidth="8" strokeLinecap="round" filter="url(#neonGlowBlue)" />
+            <line x1="0" y1={shoulderY} x2="0" y2={headY + 15} stroke="#3b82f6" strokeWidth="4" strokeLinecap="round" filter="url(#neonGlowBlue)" opacity="0.5" />
             
-            {/* 왼쪽 팔 뼈대 그룹 (반대 방향) */}
-            <g className="bone-arm1-reverse" style={{...reverseAnimationStyle, transformOrigin: '0px 0px'}}>
-              <line x1="0" y1="0" x2="0" y2="-140" stroke="#3b82f6" strokeWidth="5" strokeLinecap="round" strokeOpacity="0.8" filter="url(#neonGlow)" />
-              <circle cx="0" cy="-140" r="8" fill="#06b6d4" filter="url(#neonGlow)" />
-              
-              {/* 왼쪽 하박 뼈대 그룹 */}
-              <g className="bone-arm2-reverse" style={{...reverseAnimationStyle, transformOrigin: '0px -140px'}}>
-                  <line x1="0" y1="-140" x2="0" y2="-230" stroke="#06b6d4" strokeWidth="4" strokeLinecap="round" strokeOpacity="0.6" filter="url(#neonGlow)" />
-                  <circle cx="0" cy="-230" r="6" fill="#a855f7" filter="url(#neonGlowPurple)" />
-              </g>
+            {/* 코어 관절 (어깨, 골반, 머리) */}
+            <circle cx="0" cy={shoulderY} r="8" fill="#eff6ff" filter="url(#neonGlowBlue)" />
+            <circle cx="0" cy={pelvisY} r="8" fill="#eff6ff" filter="url(#neonGlowBlue)" />
+            <circle cx="0" cy={headY} r="14" fill="#eff6ff" filter="url(#neonGlowBlue)" />
+
+            {/* 포그라운드 레이어 (오른쪽 팔/다리 - 진하고 두껍게) */}
+            <g opacity="1">
+              {/* 오른쪽 다리 뼈대 */}
+              <line x1="0" y1={pelvisY} x2={rKneeX} y2={rKneeY} stroke="#a855f7" strokeWidth="8" strokeLinecap="round" filter="url(#neonGlowPurple)" />
+              <line x1={rKneeX} y1={rKneeY} x2={rFootX} y2={rFootY} stroke="#c084fc" strokeWidth="6" strokeLinecap="round" filter="url(#neonGlowPurple)" />
+              {/* 오른쪽 다리 관절 */}
+              <circle cx={rKneeX} cy={rKneeY} r="7" fill="#ffffff" filter="url(#neonGlowPurple)" />
+              <circle cx={rFootX} cy={rFootY} r="6" fill="#ffffff" filter="url(#neonGlowPurple)" />
+
+              {/* 오른쪽 팔 뼈대 */}
+              <line x1="0" y1={shoulderY} x2={rElbowX} y2={rElbowY} stroke="#06b6d4" strokeWidth="7" strokeLinecap="round" filter="url(#neonGlowCyan)" />
+              <line x1={rElbowX} y1={rElbowY} x2={rHandX} y2={rHandY} stroke="#22d3ee" strokeWidth="5" strokeLinecap="round" filter="url(#neonGlowCyan)" />
+              {/* 오른쪽 팔 관절 */}
+              <circle cx={rElbowX} cy={rElbowY} r="6" fill="#ffffff" filter="url(#neonGlowCyan)" />
+              <circle cx={rHandX} cy={rHandY} r="5" fill="#ffffff" filter="url(#neonGlowCyan)" />
             </g>
+
           </g>
         </svg>
 
-        {/* CSS Keyframes 인라인 삽입 (독립적 구동) */}
-        <style dangerouslySetInnerHTML={{__html: `
-          @keyframes swing {
-            0% { transform: rotate(-40deg); }
-            50% { transform: rotate(50deg); }
-            100% { transform: rotate(-40deg); }
-          }
-          @keyframes swingReverse {
-            0% { transform: rotate(50deg); }
-            50% { transform: rotate(-60deg); }
-            100% { transform: rotate(50deg); }
-          }
-          @keyframes flexArm {
-            0% { transform: rotate(15deg); }
-            50% { transform: rotate(110deg); }
-            100% { transform: rotate(15deg); }
-          }
-          @keyframes flexArmReverse {
-            0% { transform: rotate(-20deg); }
-            50% { transform: rotate(-100deg); }
-            100% { transform: rotate(-20deg); }
-          }
-          @keyframes wiggle {
-            0%, 100% { d: path('M 0 220 Q 25 250 -15 280 M 0 220 Q -25 240 10 270'); opacity: 0.8; }
-            50% { d: path('M 0 220 Q -35 260 20 270 M 0 220 Q 15 250 -20 260'); opacity: 0.3; }
-          }
-          
-          .bone-arm1 { animation: swing 3s ease-in-out infinite; }
-          .bone-arm2 { animation: flexArm 3s ease-in-out infinite; }
-          .bone-arm1-reverse { animation: swingReverse 4s ease-in-out infinite; }
-          .bone-arm2-reverse { animation: flexArmReverse 4s ease-in-out infinite; }
-          .bone-hand { animation: wiggle 3s ease-in-out infinite; }
-        `}} />
+        {/* 상단 뱃지 표시 */}
+        <div className="absolute top-6 left-6 z-20 flex gap-3">
+           <div className="px-3 py-1.5 bg-black/40 backdrop-blur-md rounded-full border border-white/10 text-xs font-mono font-bold text-white shadow-lg">
+             KINETIC ENGINE V2
+           </div>
+           <div className="px-3 py-1.5 bg-black/40 backdrop-blur-md rounded-full border border-white/10 text-xs font-mono font-bold text-green-400 shadow-lg flex items-center gap-2">
+             <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+             LIVE TRACKING
+           </div>
+        </div>
 
         {/* 하단 글래스모피즘 컨트롤러 */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white/10 dark:bg-white/5 backdrop-blur-xl border border-white/20 dark:border-white/10 p-2.5 rounded-full flex items-center gap-2 z-20 shadow-[0_10px_30px_rgba(0,0,0,0.5)] transition-all duration-300">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white/10 dark:bg-white/10 backdrop-blur-2xl border border-white/20 p-2.5 rounded-full flex items-center gap-3 z-20 shadow-[0_15px_40px_rgba(0,0,0,0.7)] transition-all duration-300">
           <button 
             onClick={() => setIsPlaying(!isPlaying)} 
-            className={`w-14 h-14 flex items-center justify-center rounded-full font-extrabold shadow-lg transition-all duration-300 ${isPlaying ? 'bg-slate-800 text-white hover:bg-slate-700' : 'bg-primary text-white hover:bg-blue-600 shadow-[0_0_20px_rgba(59,130,246,0.6)]'}`}
+            className={`w-14 h-14 flex items-center justify-center rounded-full font-extrabold shadow-xl transition-all duration-300 ${isPlaying ? 'bg-slate-800 text-white hover:bg-slate-700 border border-white/10' : 'bg-primary text-white hover:bg-blue-600 shadow-[0_0_25px_rgba(59,130,246,0.8)] border border-blue-400'}`}
           >
             {isPlaying ? '일시정지' : '재생'}
           </button>
           
-          <div className="w-px h-8 bg-white/20 mx-2"></div>
+          <div className="w-px h-10 bg-white/20 mx-1"></div>
           
-          <div className="flex bg-black/20 dark:bg-black/40 rounded-full p-1 border border-white/5">
+          <div className="flex bg-black/40 rounded-full p-1 border border-white/10 shadow-inner">
             {[0.5, 1, 2].map(speed => (
               <button 
                 key={speed} 
                 onClick={() => setPlaybackSpeed(speed)} 
-                className={`px-5 py-2.5 rounded-full text-sm font-extrabold transition-all duration-300 ${playbackSpeed === speed ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.4)]' : 'text-white/60 hover:text-white hover:bg-white/10'}`}
+                className={`px-6 py-2.5 rounded-full text-sm font-extrabold transition-all duration-300 ${playbackSpeed === speed ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.6)]' : 'text-white/60 hover:text-white hover:bg-white/20'}`}
               >
                 {speed}x
               </button>
@@ -219,7 +300,6 @@ export default function AssetDetail({ asset, onBack }) {
 
         {/* 로열티 분배율 차트 */}
         <div className="bento-card bento-card-interactive p-10 md:p-14 col-span-1 flex flex-col relative overflow-hidden">
-          {/* 은은한 배경 광원 효과 */}
           <div className="absolute -top-20 -right-20 w-64 h-64 bg-purple-200 dark:bg-purple-600/20 rounded-full blur-[80px] pointer-events-none transition-colors duration-500"></div>
 
           <h3 className="text-3xl font-extrabold mb-12 flex items-center gap-4 relative z-10 text-slate-900 dark:text-white transition-colors">
@@ -228,7 +308,6 @@ export default function AssetDetail({ asset, onBack }) {
           </h3>
           
           <div className="flex-1 flex flex-col justify-center gap-10 relative z-10">
-            {/* CSS 바 차트 */}
             <div className="space-y-10">
               
               <div className="group">
