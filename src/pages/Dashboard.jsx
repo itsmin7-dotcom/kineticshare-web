@@ -8,8 +8,21 @@ const mockAssets = [
   { id: 'mfg-001', name: '정밀 납땜 공정', category: '정밀 제조', artisan: '0x4D5...1E8', dof: 6, hz: 240, transactions: 3100 },
 ];
 
+// O2O 캘린더용 날짜 계산
+const today = new Date();
+const dates = Array.from({length: 7}, (_, i) => {
+  const d = new Date();
+  d.setDate(today.getDate() + i + 1);
+  return d;
+});
+const days = ['일', '월', '화', '수', '목', '금', '토'];
+
 export default function Dashboard({ onNavigate }) {
   const [activeCategory, setActiveCategory] = useState('가사 노동');
+
+  // O2O 확장 아코디언 상태
+  const [isExtractionOpen, setIsExtractionOpen] = useState(false);
+  const [extractionTab, setExtractionTab] = useState('studio');
 
   // 예상 수익 시뮬레이터 상태
   const [주간제공시간, set주간제공시간] = useState(10);
@@ -102,7 +115,7 @@ export default function Dashboard({ onNavigate }) {
           </div>
         </div>
 
-        {/* 예상 수익 시뮬레이터 (추가된 부분) */}
+        {/* 예상 수익 시뮬레이터 */}
         <div className="bento-card bento-card-interactive p-10 md:p-14 col-span-1 md:col-span-3">
           <div className="flex flex-col lg:flex-row gap-16 items-center">
             {/* 좌측 입력 영역 */}
@@ -117,7 +130,6 @@ export default function Dashboard({ onNavigate }) {
                   <label className="text-sm font-bold text-slate-700 dark:text-gray-300">주간 가사 노동 데이터 제공 시간</label>
                   <span className="text-2xl font-extrabold text-primary">{주간제공시간} 시간</span>
                 </div>
-                {/* 커스텀 슬라이더 스타일 */}
                 <input 
                   type="range" 
                   min="1" max="40" 
@@ -153,7 +165,6 @@ export default function Dashboard({ onNavigate }) {
 
             {/* 우측 결과 영역 */}
             <div className="w-full lg:w-[55%] bg-slate-50 dark:bg-black/20 rounded-[2.5rem] p-10 border border-slate-200 dark:border-white/[0.05] flex flex-col justify-center shadow-inner transition-colors duration-500 relative overflow-hidden">
-              {/* 은은한 빛 효과 */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-[80px] pointer-events-none"></div>
 
               <div className="mb-10 relative z-10">
@@ -172,6 +183,142 @@ export default function Dashboard({ onNavigate }) {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* CTA 배너 및 O2O 컴포넌트 추가 */}
+        <div className="col-span-1 md:col-span-3">
+          {/* CTA 버튼 배너 */}
+          <div 
+            onClick={() => setIsExtractionOpen(!isExtractionOpen)}
+            className="bento-card bento-card-interactive p-8 md:p-10 cursor-pointer flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden group border-2 border-transparent hover:border-primary/30 transition-all duration-300"
+          >
+            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary via-purple-500 to-cyan-400 opacity-80"></div>
+            <div>
+              <h3 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white transition-colors mb-2">나의 행동 데이터로 수익 창출하기</h3>
+              <p className="text-slate-500 dark:text-gray-400 font-medium">인증된 장비로 정밀하게 추출하거나, 집에서 편리하게 모션 캡처 키트를 대여해 보세요.</p>
+            </div>
+            <button className="whitespace-nowrap px-8 py-4 rounded-full bg-slate-900 dark:bg-white text-white dark:text-black font-extrabold text-lg transition-all duration-300 shadow-[0_10px_20px_rgba(15,23,42,0.2)] dark:shadow-[0_10px_20px_rgba(255,255,255,0.2)] group-hover:-translate-y-1">
+              {isExtractionOpen ? '예약 닫기 \u2191' : '내 행동 데이터 추출하기 \u2193'}
+            </button>
+          </div>
+
+          {/* 아코디언 본문 영역 */}
+          {isExtractionOpen && (
+            <div className="bento-card mt-6 p-10 md:p-14 animate-fade-in border-t-4 border-t-primary dark:border-t-primary rounded-t-none">
+              <div className="flex gap-4 mb-10 border-b border-slate-200 dark:border-white/[0.08] pb-4 transition-colors">
+                <button 
+                  onClick={() => setExtractionTab('studio')}
+                  className={`text-lg font-extrabold px-6 py-3 rounded-t-xl transition-all duration-300 relative ${extractionTab === 'studio' ? 'text-primary' : 'text-slate-500 dark:text-gray-400 hover:text-slate-800 dark:hover:text-white'}`}
+                >
+                  스튜디오 방문 예약
+                  {extractionTab === 'studio' && <div className="absolute bottom-[-16px] left-0 w-full h-1 bg-primary rounded-full"></div>}
+                </button>
+                <button 
+                  onClick={() => setExtractionTab('rental')}
+                  className={`text-lg font-extrabold px-6 py-3 rounded-t-xl transition-all duration-300 relative ${extractionTab === 'rental' ? 'text-primary' : 'text-slate-500 dark:text-gray-400 hover:text-slate-800 dark:hover:text-white'}`}
+                >
+                  자택 장비 대여 (O2O)
+                  {extractionTab === 'rental' && <div className="absolute bottom-[-16px] left-0 w-full h-1 bg-primary rounded-full"></div>}
+                </button>
+              </div>
+
+              {extractionTab === 'studio' && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 animate-fade-in">
+                  <div className="space-y-8">
+                    <div>
+                      <label className="text-sm font-bold text-slate-700 dark:text-gray-300 block mb-3">인증 거점 스튜디오 선택</label>
+                      <div className="relative">
+                        <select className="w-full bg-slate-100 dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.05] rounded-2xl p-5 text-slate-900 dark:text-white font-medium focus:outline-none focus:border-primary transition-colors appearance-none cursor-pointer">
+                          <option value="seoul-gangnam" className="text-slate-900">서울 강남 본점 (Vicon 프리미엄 장비)</option>
+                          <option value="seoul-hongdae" className="text-slate-900">서울 홍대점 (OptiTrack 최신 장비)</option>
+                          <option value="busan-centum" className="text-slate-900">부산 센텀점 (혼합 모션 캡처 지원)</option>
+                        </select>
+                        <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                          ▼
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-sm font-bold text-slate-700 dark:text-gray-300 block mb-3">방문 날짜 예약 (향후 7일)</label>
+                      <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
+                        {dates.map((d, idx) => (
+                          <button key={idx} className="flex-shrink-0 flex flex-col items-center justify-center w-20 h-24 rounded-2xl border border-slate-200 dark:border-white/[0.1] bg-white/50 dark:bg-white/[0.02] hover:border-primary dark:hover:border-primary hover:bg-primary/5 dark:hover:bg-primary/10 hover:-translate-y-1 transition-all duration-300 shadow-sm">
+                            <span className="text-sm font-bold text-slate-500 dark:text-gray-400 mb-1">{days[d.getDay()]}요일</span>
+                            <span className="text-2xl font-extrabold text-slate-900 dark:text-white">{d.getDate()}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-black/20 rounded-3xl p-8 md:p-10 border border-slate-200 dark:border-white/[0.05] flex flex-col justify-between shadow-inner">
+                    <div>
+                       <h4 className="font-extrabold text-xl text-slate-900 dark:text-white mb-6 flex items-center gap-3">
+                         <div className="w-2 h-6 bg-primary rounded-full"></div>
+                         스튜디오 방문 안내
+                       </h4>
+                       <ul className="text-slate-600 dark:text-gray-400 font-medium space-y-4 text-base">
+                         <li className="flex items-start gap-3"><span className="text-primary mt-1">✓</span> 예약된 시간 10분 전까지 스튜디오에 도착해 주세요.</li>
+                         <li className="flex items-start gap-3"><span className="text-primary mt-1">✓</span> 행동 캡처에 방해되지 않는 타이트하고 편안한 복장을 권장합니다.</li>
+                         <li className="flex items-start gap-3"><span className="text-primary mt-1">✓</span> 전문 데이터 엔지니어가 센서 부착부터 캘리브레이션까지 1:1로 밀착 지원합니다.</li>
+                       </ul>
+                    </div>
+                    <button className="w-full mt-10 py-5 rounded-full bg-primary text-white font-extrabold text-lg hover:bg-blue-600 transition-all shadow-[0_10px_20px_rgba(59,130,246,0.3)] hover:-translate-y-1">
+                      예약 확정하기
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {extractionTab === 'rental' && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 animate-fade-in">
+                  <div className="space-y-6">
+                    <p className="text-slate-500 dark:text-gray-400 font-medium text-base mb-6 bg-slate-50 dark:bg-white/[0.02] p-4 rounded-xl border border-slate-200 dark:border-white/[0.05]">
+                      가정용 간이 모션 캡처 키트(IMU 기반)를 자택으로 배송받아 일상 속 행동 데이터를 기록합니다.
+                    </p>
+                    <div>
+                      <label className="text-sm font-bold text-slate-700 dark:text-gray-300 block mb-2">배송지 주소 (도로명)</label>
+                      <input type="text" placeholder="예: 서울특별시 강남구 테헤란로 123" className="w-full bg-slate-100 dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.05] rounded-2xl p-5 text-slate-900 dark:text-white font-medium focus:outline-none focus:border-primary transition-colors" />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                       <div>
+                          <label className="text-sm font-bold text-slate-700 dark:text-gray-300 block mb-2">상세 주소</label>
+                          <input type="text" placeholder="동 / 호수 등" className="w-full bg-slate-100 dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.05] rounded-2xl p-5 text-slate-900 dark:text-white font-medium focus:outline-none focus:border-primary transition-colors" />
+                       </div>
+                       <div>
+                          <label className="text-sm font-bold text-slate-700 dark:text-gray-300 block mb-2">대여 기간 선택</label>
+                          <div className="relative">
+                            <select className="w-full bg-slate-100 dark:bg-white/[0.03] border border-slate-200 dark:border-white/[0.05] rounded-2xl p-5 text-slate-900 dark:text-white font-medium focus:outline-none focus:border-primary transition-colors appearance-none cursor-pointer">
+                              <option value="3" className="text-slate-900">3일 (기본 패키지)</option>
+                              <option value="7" className="text-slate-900">7일 (심화 패키지)</option>
+                              <option value="14" className="text-slate-900">14일 (전문가 패키지)</option>
+                            </select>
+                            <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                              ▼
+                            </div>
+                          </div>
+                       </div>
+                    </div>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-black/20 rounded-3xl p-8 md:p-10 border border-slate-200 dark:border-white/[0.05] flex flex-col justify-between shadow-inner">
+                    <div>
+                       <h4 className="font-extrabold text-xl text-slate-900 dark:text-white mb-6 flex items-center gap-3">
+                         <div className="w-2 h-6 bg-purple-500 rounded-full"></div>
+                         장비 대여 유의사항
+                       </h4>
+                       <ul className="text-slate-600 dark:text-gray-400 font-medium space-y-4 text-base">
+                         <li className="flex items-start gap-3"><span className="text-purple-500 mt-1">✓</span> 신청 후 영업일 기준 익일 오후에 안전하게 안심 배송 출발합니다.</li>
+                         <li className="flex items-start gap-3"><span className="text-purple-500 mt-1">✓</span> 초보자를 위한 그림 가이드북이 동봉되며, 전용 모바일 앱을 통해 누구나 쉽게 자가 캘리브레이션이 가능합니다.</li>
+                         <li className="flex items-start gap-3"><span className="text-purple-500 mt-1">✓</span> 고가의 정밀 센서이므로, 사용자 부주의에 의한 장비 파손이나 분실 시 패널티가 부과될 수 있습니다.</li>
+                       </ul>
+                    </div>
+                    <button className="w-full mt-10 py-5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-black font-extrabold text-lg hover:bg-slate-800 dark:hover:bg-gray-200 transition-all shadow-[0_10px_20px_rgba(15,23,42,0.2)] dark:shadow-[0_10px_20px_rgba(255,255,255,0.2)] hover:-translate-y-1">
+                      배송 요청하기
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* 인기 자산 랭킹 */}
