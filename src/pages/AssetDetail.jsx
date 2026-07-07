@@ -1,9 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 
 export default function AssetDetail({ asset, onBack }) {
   const [isPlaying, setIsPlaying] = useState(true);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [time, setTime] = useState(0);
+
+  // 결제 트랜잭션 플로우 상태
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isProcessingTx, setIsProcessingTx] = useState(false);
+  const [hasPurchased, setHasPurchased] = useState(false);
 
   const isPlayingRef = useRef(isPlaying);
   const speedRef = useRef(playbackSpeed);
@@ -31,6 +37,28 @@ export default function AssetDetail({ asset, onBack }) {
     return () => cancelAnimationFrame(frameId);
   }, []);
 
+  // 결제 모달 오픈 시 스크롤 방지
+  useEffect(() => {
+    if (isPaymentModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [isPaymentModalOpen]);
+
+  // 스마트 컨트랙트 서명 모의 처리 로직
+  const handlePurchase = () => {
+    setIsProcessingTx(true);
+    setTimeout(() => {
+      setIsProcessingTx(false);
+      setIsPaymentModalOpen(false);
+      setHasPurchased(true); // 권한 획득 처리
+    }, 1500);
+  };
+
   if (!asset) return null;
 
   // 수학적 기구학(Kinematics) 기반 궤적 계산
@@ -42,10 +70,10 @@ export default function AssetDetail({ asset, onBack }) {
   const pelvisY = 60;
 
   // 1. 오른팔 (Right Arm)
-  const rArmL1 = 80; // 상박
-  const rArmL2 = 70; // 하박
+  const rArmL1 = 80;
+  const rArmL2 = 70;
   const rShoulderAngle = Math.sin(f) * 0.8;
-  const rElbowRel = Math.min(0, Math.cos(f)) * 1.5; // 팔꿈치는 안쪽으로만 굽힘
+  const rElbowRel = Math.min(0, Math.cos(f)) * 1.5;
   
   const rElbowX = rArmL1 * Math.sin(rShoulderAngle);
   const rElbowY = shoulderY + rArmL1 * Math.cos(rShoulderAngle);
@@ -64,10 +92,10 @@ export default function AssetDetail({ asset, onBack }) {
   const lHandY = lElbowY + lArmL2 * Math.cos(lShoulderAngle + lElbowRel);
 
   // 3. 오른다리 (Right Leg)
-  const rLegL1 = 100; // 허벅지
-  const rLegL2 = 90;  // 종아리
+  const rLegL1 = 100;
+  const rLegL2 = 90;
   const rHipAngle = -Math.sin(f) * 0.8;
-  const rKneeRel = Math.max(0, -Math.cos(f)) * 1.8; // 무릎은 바깥(뒤)으로만 굽힘
+  const rKneeRel = Math.max(0, -Math.cos(f)) * 1.8;
 
   const rKneeX = rLegL1 * Math.sin(rHipAngle);
   const rKneeY = pelvisY + rLegL1 * Math.cos(rHipAngle);
@@ -86,7 +114,7 @@ export default function AssetDetail({ asset, onBack }) {
   const lFootY = lKneeY + lLegL2 * Math.cos(lHipAngle + lKneeRel);
 
   return (
-    <div className="space-y-10 animate-fade-in max-w-6xl mx-auto transition-colors duration-500 pb-20">
+    <div className="space-y-10 animate-fade-in max-w-6xl mx-auto transition-colors duration-500 pb-20 relative">
       
       <button 
         onClick={onBack}
@@ -96,17 +124,16 @@ export default function AssetDetail({ asset, onBack }) {
         대시보드로 돌아가기
       </button>
 
-      {/* 키네틱 데이터 프리뷰어 영역 (동적 좌표 바인딩 적용) */}
+      {/* 키네틱 데이터 프리뷰어 영역 */}
       <div className="relative w-full h-[450px] md:h-[550px] bg-[#050505] rounded-[2.5rem] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.6)] border border-slate-800 dark:border-white/[0.08] mb-12 flex items-center justify-center group">
         
         {/* 사이버틱 배경 캔버스 그리드 */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:30px_30px] opacity-70"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30"></div>
         
-        {/* SVG 애니메이션 캔버스 (Kinematic Chain) */}
+        {/* SVG 애니메이션 캔버스 */}
         <svg width="100%" height="100%" viewBox="0 0 800 500" className="absolute z-10">
           <defs>
-            {/* 은은한 네온 글로우 섀도우 필터 */}
             <filter id="neonGlowBlue" x="-100%" y="-100%" width="300%" height="300%">
               <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur1" />
               <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur2" />
@@ -139,20 +166,14 @@ export default function AssetDetail({ asset, onBack }) {
           </defs>
           
           <g transform="translate(400, 250)">
-            
-            {/* 백그라운드 레이어 (왼쪽 팔/다리 - 약간 투명하고 얇게 처리하여 깊이감 조성) */}
+            {/* 백그라운드 레이어 */}
             <g opacity="0.6">
-              {/* 왼쪽 다리 뼈대 */}
               <line x1="0" y1={pelvisY} x2={lKneeX} y2={lKneeY} stroke="#a855f7" strokeWidth="6" strokeLinecap="round" filter="url(#neonGlowPurple)" />
               <line x1={lKneeX} y1={lKneeY} x2={lFootX} y2={lFootY} stroke="#c084fc" strokeWidth="4" strokeLinecap="round" filter="url(#neonGlowPurple)" />
-              {/* 왼쪽 다리 관절 */}
               <circle cx={lKneeX} cy={lKneeY} r="5" fill="#f3e8ff" filter="url(#neonGlowPurple)" />
               <circle cx={lFootX} cy={lFootY} r="4" fill="#f3e8ff" filter="url(#neonGlowPurple)" />
-
-              {/* 왼쪽 팔 뼈대 */}
               <line x1="0" y1={shoulderY} x2={lElbowX} y2={lElbowY} stroke="#06b6d4" strokeWidth="5" strokeLinecap="round" filter="url(#neonGlowCyan)" />
               <line x1={lElbowX} y1={lElbowY} x2={lHandX} y2={lHandY} stroke="#22d3ee" strokeWidth="3" strokeLinecap="round" filter="url(#neonGlowCyan)" />
-              {/* 왼쪽 팔 관절 */}
               <circle cx={lElbowX} cy={lElbowY} r="4" fill="#cffafe" filter="url(#neonGlowCyan)" />
               <circle cx={lHandX} cy={lHandY} r="3" fill="#cffafe" filter="url(#neonGlowCyan)" />
             </g>
@@ -161,32 +182,24 @@ export default function AssetDetail({ asset, onBack }) {
             <line x1="0" y1={shoulderY} x2="0" y2={pelvisY} stroke="#3b82f6" strokeWidth="8" strokeLinecap="round" filter="url(#neonGlowBlue)" />
             <line x1="0" y1={shoulderY} x2="0" y2={headY + 15} stroke="#3b82f6" strokeWidth="4" strokeLinecap="round" filter="url(#neonGlowBlue)" opacity="0.5" />
             
-            {/* 코어 관절 (어깨, 골반, 머리) */}
             <circle cx="0" cy={shoulderY} r="8" fill="#eff6ff" filter="url(#neonGlowBlue)" />
             <circle cx="0" cy={pelvisY} r="8" fill="#eff6ff" filter="url(#neonGlowBlue)" />
             <circle cx="0" cy={headY} r="14" fill="#eff6ff" filter="url(#neonGlowBlue)" />
 
-            {/* 포그라운드 레이어 (오른쪽 팔/다리 - 진하고 두껍게) */}
+            {/* 포그라운드 레이어 */}
             <g opacity="1">
-              {/* 오른쪽 다리 뼈대 */}
               <line x1="0" y1={pelvisY} x2={rKneeX} y2={rKneeY} stroke="#a855f7" strokeWidth="8" strokeLinecap="round" filter="url(#neonGlowPurple)" />
               <line x1={rKneeX} y1={rKneeY} x2={rFootX} y2={rFootY} stroke="#c084fc" strokeWidth="6" strokeLinecap="round" filter="url(#neonGlowPurple)" />
-              {/* 오른쪽 다리 관절 */}
               <circle cx={rKneeX} cy={rKneeY} r="7" fill="#ffffff" filter="url(#neonGlowPurple)" />
               <circle cx={rFootX} cy={rFootY} r="6" fill="#ffffff" filter="url(#neonGlowPurple)" />
-
-              {/* 오른쪽 팔 뼈대 */}
               <line x1="0" y1={shoulderY} x2={rElbowX} y2={rElbowY} stroke="#06b6d4" strokeWidth="7" strokeLinecap="round" filter="url(#neonGlowCyan)" />
               <line x1={rElbowX} y1={rElbowY} x2={rHandX} y2={rHandY} stroke="#22d3ee" strokeWidth="5" strokeLinecap="round" filter="url(#neonGlowCyan)" />
-              {/* 오른쪽 팔 관절 */}
               <circle cx={rElbowX} cy={rElbowY} r="6" fill="#ffffff" filter="url(#neonGlowCyan)" />
               <circle cx={rHandX} cy={rHandY} r="5" fill="#ffffff" filter="url(#neonGlowCyan)" />
             </g>
-
           </g>
         </svg>
 
-        {/* 상단 뱃지 표시 */}
         <div className="absolute top-6 left-6 z-20 flex gap-3">
            <div className="px-3 py-1.5 bg-black/40 backdrop-blur-md rounded-full border border-white/10 text-xs font-mono font-bold text-white shadow-lg">
              KINETIC ENGINE V2
@@ -197,7 +210,6 @@ export default function AssetDetail({ asset, onBack }) {
            </div>
         </div>
 
-        {/* 하단 글래스모피즘 컨트롤러 */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white/10 dark:bg-white/10 backdrop-blur-2xl border border-white/20 p-2.5 rounded-full flex items-center gap-3 z-20 shadow-[0_15px_40px_rgba(0,0,0,0.7)] transition-all duration-300">
           <button 
             onClick={() => setIsPlaying(!isPlaying)} 
@@ -205,9 +217,7 @@ export default function AssetDetail({ asset, onBack }) {
           >
             {isPlaying ? '일시정지' : '재생'}
           </button>
-          
           <div className="w-px h-10 bg-white/20 mx-1"></div>
-          
           <div className="flex bg-black/40 rounded-full p-1 border border-white/10 shadow-inner">
             {[0.5, 1, 2].map(speed => (
               <button 
@@ -236,9 +246,25 @@ export default function AssetDetail({ asset, onBack }) {
             {asset.name}
           </h1>
         </div>
-        <button className="w-full md:w-auto px-10 py-5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-black font-extrabold text-xl hover:bg-slate-800 dark:hover:bg-gray-200 transition-all duration-300 shadow-[0_10px_20px_rgba(15,23,42,0.2)] dark:shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:-translate-y-1 transform">
-          데이터 라이선스 구매
-        </button>
+        
+        {/* 조건부 렌더링: 구매 전/후 CTA 버튼 */}
+        {!hasPurchased ? (
+          <button 
+            onClick={() => setIsPaymentModalOpen(true)}
+            className="w-full md:w-auto px-10 py-5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-black font-extrabold text-xl hover:bg-slate-800 dark:hover:bg-gray-200 transition-all duration-300 shadow-[0_10px_20px_rgba(15,23,42,0.2)] dark:shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:-translate-y-1 transform relative z-10"
+          >
+            데이터 라이선스 구매
+          </button>
+        ) : (
+          <div className="w-full md:w-auto flex flex-col sm:flex-row gap-4 animate-fade-in relative z-10">
+            <button className="px-8 py-5 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-extrabold text-lg hover:brightness-110 transition-all shadow-[0_10px_20px_rgba(59,130,246,0.3)] hover:-translate-y-1 flex items-center justify-center gap-2">
+              <span className="text-2xl font-normal">↓</span> 원본 파일 다운로드 (.bvh)
+            </button>
+            <button className="px-8 py-5 rounded-full bg-slate-800 dark:bg-white/10 text-white font-extrabold text-lg border border-slate-700 dark:border-white/20 hover:bg-slate-700 dark:hover:bg-white/20 transition-all shadow-[0_10px_20px_rgba(0,0,0,0.2)] hover:-translate-y-1 flex items-center justify-center gap-2">
+              <span className="text-2xl font-normal">🔑</span> API 키 발급
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-10">
@@ -351,6 +377,64 @@ export default function AssetDetail({ asset, onBack }) {
         </div>
 
       </div>
+
+      {/* 데이터 라이선스 결제 모달 - React Portal을 사용하여 문서 최상단에 렌더링 (뷰포트 갇힘 버그 수정) */}
+      {isPaymentModalOpen && createPortal(
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6" style={{ WebkitTransform: 'translateZ(0)' }}>
+          {/* 어두운 배경 블러 처리 */}
+          <div 
+            className="absolute inset-0 bg-slate-900/60 dark:bg-black/80 backdrop-blur-md transition-all duration-500 animate-fade-in"
+            onClick={() => !isProcessingTx && setIsPaymentModalOpen(false)}
+          ></div>
+          
+          {/* 글래스모피즘 모달 카드 */}
+          <div className="relative w-full max-w-lg bg-white/95 dark:bg-[#0a0a0c]/95 backdrop-blur-3xl border border-white/50 dark:border-white/[0.08] rounded-[2.5rem] shadow-[0_30px_60px_rgba(0,0,0,0.5)] dark:shadow-[0_30px_60px_rgba(0,0,0,0.9)] p-10 md:p-12 animate-fade-in flex flex-col">
+            <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-8 tracking-tight text-center">데이터 라이선스 구매</h2>
+            
+            <div className="space-y-6 mb-10">
+              <div className="bg-slate-50 dark:bg-white/[0.02] p-6 rounded-3xl border border-slate-200 dark:border-white/[0.05] shadow-sm">
+                <p className="text-xs text-slate-500 dark:text-gray-400 font-bold uppercase tracking-widest mb-2">데이터명</p>
+                <p className="text-xl font-bold text-slate-900 dark:text-white truncate">{asset.name}</p>
+              </div>
+              
+              <div className="bg-slate-50 dark:bg-white/[0.02] p-6 rounded-3xl border border-slate-200 dark:border-white/[0.05] flex justify-between items-center shadow-sm">
+                <div>
+                  <p className="text-xs text-slate-500 dark:text-gray-400 font-bold uppercase tracking-widest mb-2">청구 금액</p>
+                  <p className="text-3xl font-extrabold text-slate-900 dark:text-white">1,420 <span className="text-sm font-bold text-slate-500">KNT</span></p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-slate-500 dark:text-gray-400 font-bold uppercase tracking-widest mb-2">내 지갑 잔액</p>
+                  <p className="text-base font-bold text-green-600 dark:text-green-400">12,500 KNT</p>
+                </div>
+              </div>
+            </div>
+
+            {isProcessingTx ? (
+              <div className="w-full py-6 flex flex-col items-center justify-center gap-5 bg-slate-100 dark:bg-white/[0.05] rounded-full">
+                <div className="w-8 h-8 border-4 border-slate-300 dark:border-white/20 border-t-primary dark:border-t-primary rounded-full animate-spin"></div>
+                <p className="text-slate-700 dark:text-gray-300 font-bold text-base">트랜잭션 블록 생성 중...</p>
+              </div>
+            ) : (
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => setIsPaymentModalOpen(false)}
+                  className="flex-1 py-5 rounded-full font-bold text-lg text-slate-600 dark:text-gray-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+                >
+                  취소
+                </button>
+                <button 
+                  onClick={handlePurchase}
+                  className="flex-[2] py-5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-black font-extrabold text-lg hover:bg-slate-800 dark:hover:bg-gray-200 transition-all shadow-[0_10px_20px_rgba(15,23,42,0.2)] dark:shadow-[0_10px_20px_rgba(255,255,255,0.2)] hover:-translate-y-1"
+                >
+                  스마트 컨트랙트 서명
+                </button>
+              </div>
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
+
     </div>
   );
 }
