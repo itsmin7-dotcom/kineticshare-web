@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import Dashboard from './pages/Dashboard'
 import AssetDetail from './pages/AssetDetail'
+import DeveloperCenter from './pages/DeveloperCenter'
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -88,6 +89,15 @@ function App() {
 
           {/* 우측 유틸리티 영역 */}
           <div className="flex items-center justify-end gap-3 sm:gap-4 flex-1">
+            
+            {/* 개발자 센터 메뉴 추가 */}
+            <button 
+              onClick={() => navigate('developer')}
+              className={`text-sm font-extrabold transition-colors hidden md:block mr-2 ${currentView === 'developer' ? 'text-primary dark:text-cyan-400' : 'text-slate-500 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white'}`}
+            >
+              개발자 센터
+            </button>
+
             {/* 라이트/다크 테마 토글 버튼 */}
             <button 
               onClick={() => setIsDarkMode(!isDarkMode)}
@@ -129,6 +139,7 @@ function App() {
       <main className="pt-32 pb-24 px-4 sm:px-6 max-w-7xl mx-auto relative z-10">
         {currentView === 'dashboard' && <Dashboard onNavigate={navigate} userRole={userRole} />}
         {currentView === 'assetDetail' && <AssetDetail asset={selectedAsset} onBack={() => navigate('dashboard')} />}
+        {currentView === 'developer' && <DeveloperCenter onBack={() => navigate('dashboard')} />}
       </main>
 
     </div>
