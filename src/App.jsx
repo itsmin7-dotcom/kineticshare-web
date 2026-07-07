@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import Dashboard from './pages/Dashboard'
 import AssetDetail from './pages/AssetDetail'
 import DeveloperCenter from './pages/DeveloperCenter'
+import ValidatorDashboard from './pages/ValidatorDashboard'
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -64,25 +65,35 @@ function App() {
             </span>
           </div>
 
-          {/* 중앙 토글 (공급자 / 수요자) */}
+          {/* 중앙 토글 (공급자 / 수요자 / 검증자) */}
           <div className="flex-1 flex justify-center">
-            <div className="flex bg-slate-200/50 dark:bg-white/[0.05] p-1 rounded-full border border-slate-300 dark:border-white/10 backdrop-blur-md relative shadow-inner transition-colors duration-300">
-              {/* 슬라이딩 백그라운드 캡슐 */}
+            <div className="flex bg-slate-200/50 dark:bg-white/[0.05] p-1 rounded-full border border-slate-300 dark:border-white/10 backdrop-blur-md relative shadow-inner transition-colors duration-300 w-[320px] sm:w-[380px]">
+              {/* 슬라이딩 백그라운드 캡슐 (3등분) */}
               <div 
-                className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white dark:bg-white/10 rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] dark:shadow-[0_2px_15px_rgba(255,255,255,0.1)] transition-all duration-300 ease-in-out ${userRole === 'provider' ? 'left-1' : 'left-[calc(50%+3px)]'}`}
+                className={`absolute top-1 bottom-1 w-[calc(33.33%-2px)] bg-white dark:bg-white/10 rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] dark:shadow-[0_2px_15px_rgba(255,255,255,0.1)] transition-all duration-300 ease-in-out ${
+                  userRole === 'provider' ? 'left-1' : 
+                  userRole === 'buyer' ? 'left-[calc(33.33%+1px)]' : 
+                  'left-[calc(66.66%+1px)]'
+                }`}
               ></div>
               
               <button 
                 onClick={() => setUserRole('provider')}
-                className={`relative px-4 sm:px-6 py-2 rounded-full text-sm font-extrabold transition-colors duration-300 z-10 ${userRole === 'provider' ? 'text-primary dark:text-white' : 'text-slate-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'}`}
+                className={`relative flex-1 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-extrabold transition-colors duration-300 z-10 ${userRole === 'provider' ? 'text-primary dark:text-white' : 'text-slate-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'}`}
               >
-                데이터 공급자
+                공급자
               </button>
               <button 
                 onClick={() => setUserRole('buyer')}
-                className={`relative px-4 sm:px-6 py-2 rounded-full text-sm font-extrabold transition-colors duration-300 z-10 ${userRole === 'buyer' ? 'text-purple-600 dark:text-white' : 'text-slate-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'}`}
+                className={`relative flex-1 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-extrabold transition-colors duration-300 z-10 ${userRole === 'buyer' ? 'text-purple-600 dark:text-white' : 'text-slate-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'}`}
               >
-                데이터 수요자
+                수요자
+              </button>
+              <button 
+                onClick={() => setUserRole('validator')}
+                className={`relative flex-1 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-extrabold transition-colors duration-300 z-10 ${userRole === 'validator' ? 'text-green-600 dark:text-white' : 'text-slate-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'}`}
+              >
+                검증자
               </button>
             </div>
           </div>
@@ -137,7 +148,9 @@ function App() {
 
       {/* 3. 메인 라우팅 영역 */}
       <main className="pt-32 pb-24 px-4 sm:px-6 max-w-7xl mx-auto relative z-10">
-        {currentView === 'dashboard' && <Dashboard onNavigate={navigate} userRole={userRole} />}
+        {currentView === 'dashboard' && (userRole === 'provider' || userRole === 'buyer') && <Dashboard onNavigate={navigate} userRole={userRole} />}
+        {currentView === 'dashboard' && userRole === 'validator' && <ValidatorDashboard />}
+        
         {currentView === 'assetDetail' && <AssetDetail asset={selectedAsset} onBack={() => navigate('dashboard')} />}
         {currentView === 'developer' && <DeveloperCenter onBack={() => navigate('dashboard')} />}
       </main>
