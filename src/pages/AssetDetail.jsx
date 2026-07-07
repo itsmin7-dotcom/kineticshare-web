@@ -1,6 +1,36 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
+// 사이버틱 디코딩 애니메이션 헬퍼 컴포넌트
+const DecodingText = ({ text }) => {
+  const [displayText, setDisplayText] = useState('');
+  
+  useEffect(() => {
+    let iteration = 0;
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
+    
+    const interval = setInterval(() => {
+      setDisplayText(text.split("").map((char, index) => {
+        if (char === ' ') return ' ';
+        if (index < iteration) {
+          return char;
+        }
+        return chars[Math.floor(Math.random() * chars.length)];
+      }).join(""));
+      
+      if (iteration >= text.length) {
+        clearInterval(interval);
+      }
+      
+      iteration += 1 / 3;
+    }, 25);
+    
+    return () => clearInterval(interval);
+  }, [text]);
+
+  return <span>{displayText}</span>;
+};
+
 export default function AssetDetail({ asset, onBack }) {
   const [isPlaying, setIsPlaying] = useState(true);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
@@ -373,6 +403,44 @@ export default function AssetDetail({ asset, onBack }) {
             <p className="text-sm font-medium text-slate-500 dark:text-gray-400 leading-relaxed transition-colors">
               * 로열티는 라이선스 거래 완료 시 스마트 컨트랙트를 통해 블록체인 네트워크에서 자동 분배됩니다.
             </p>
+          </div>
+        </div>
+
+        {/* PoA 데이터 무결성 검증 (Proof of Action) */}
+        <div className="bento-card bento-card-interactive p-10 md:p-14 col-span-1 lg:col-span-3 bg-slate-900 dark:bg-[#0a0a0c] border border-green-500/20 dark:border-green-500/30 shadow-[0_0_30px_rgba(34,197,94,0.1)] relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-green-500/5 rounded-full blur-[100px] pointer-events-none group-hover:bg-green-500/10 transition-all duration-700"></div>
+          
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10 relative z-10">
+            <h3 className="text-3xl font-extrabold flex items-center gap-4 text-white transition-colors">
+              <div className="w-2.5 h-8 bg-green-500 rounded-full shadow-[0_0_15px_rgba(34,197,94,0.8)]"></div>
+              PoA 데이터 무결성 검증
+            </h3>
+            {/* Verified by Human 마크 (애플 스타일 뱃지) */}
+            <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/30 px-5 py-2.5 rounded-full backdrop-blur-md shadow-sm">
+              <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-green-400 font-extrabold text-sm tracking-widest uppercase">Verified by Human</span>
+            </div>
+          </div>
+
+          <div className="bg-black/80 dark:bg-black/60 backdrop-blur-md p-8 rounded-[2rem] border border-white/10 font-mono text-sm md:text-base space-y-6 relative z-10 shadow-inner">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-6">
+              <span className="text-slate-400 dark:text-slate-500 w-32 shrink-0 font-bold">&gt; TxHash:</span>
+              <span className="text-green-400 break-all"><DecodingText text="0x7F2A9B8C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B1C2D3E4F5A6B7C8D9E0F1A" /></span>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-6">
+              <span className="text-slate-400 dark:text-slate-500 w-32 shrink-0 font-bold">&gt; MAC_Address:</span>
+              <span className="text-white"><DecodingText text="00:1B:44:11:3A:B7 (Vicon Vantage V16)" /></span>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-6">
+              <span className="text-slate-400 dark:text-slate-500 w-32 shrink-0 font-bold">&gt; Location:</span>
+              <span className="text-white"><DecodingText text="Studio_Seoul_Gangnam (LAT:37.498, LNG:127.027)" /></span>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-6">
+              <span className="text-slate-400 dark:text-slate-500 w-32 shrink-0 font-bold">&gt; Signature:</span>
+              <span className="text-cyan-400 break-all"><DecodingText text="VALID_KINETIC_CHAIN_SIGNATURE_MATCHED_100%" /></span>
+            </div>
           </div>
         </div>
 
