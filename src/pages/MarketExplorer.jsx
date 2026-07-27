@@ -128,18 +128,21 @@ export default function MarketExplorer({ role, onNavigate }) {
     </div>
   );
 
+  // 공급자 뷰일 때는 내 에셋(일부)만 렌더링
+  const displayAssets = role === 'provider' ? filteredAssets.slice(0, 2) : filteredAssets;
+
   return (
-    <div className="animate-fade-in pb-12">
+    <div className="max-w-[1600px] mx-auto animate-fade-in relative z-10 min-h-[80vh]">
       
-      {/* 헤더 섹션 */}
-      <div className="mb-8">
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white mb-3 flex items-center gap-3">
-          {role === 'provider' ? '📦 공급자 랩 (Lab)' : '🛒 모션 마켓 (Market)'}
+      {/* 상단 헤더 컨텍스트 */}
+      <div className="mb-8 md:mb-12 border-b border-slate-200 dark:border-white/[0.05] pb-8">
+        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-4 transition-colors">
+          {role === 'provider' ? '데이터 크리에이터 스튜디오' : '글로벌 모션 에셋 마켓'}
         </h1>
-        <p className="text-slate-500 dark:text-slate-400 text-sm">
+        <p className="text-lg text-slate-500 dark:text-gray-400 max-w-2xl font-medium transition-colors">
           {role === 'provider' 
-            ? '수집한 로봇 데이터를 검증받고 플랫폼에 상장하여 수익을 창출하세요.' 
-            : '전 세계 최고 수준의 로봇 관절 모션 데이터를 탐색하고 다운로드하세요.'}
+            ? '나의 로봇 궤적 데이터를 등록하고 판매 수익을 창출하세요.' 
+            : '검증된 로봇 모션 데이터를 탐색하고 즉시 라이선스를 획득하세요.'}
         </p>
       </div>
 
@@ -199,7 +202,39 @@ export default function MarketExplorer({ role, onNavigate }) {
             </div>
           )}
 
-          {filteredAssets.length === 0 ? (
+          {/* 공급자(Provider) 전용 스튜디오 UI 복원 */}
+          {role === 'provider' && (
+            <div className="mb-10">
+              <div className="flex justify-end mb-8">
+                <button className="px-8 py-4 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-extrabold shadow-[0_10px_20px_rgba(99,102,241,0.3)] hover:shadow-[0_15px_30px_rgba(99,102,241,0.5)] hover:-translate-y-1 transition-all duration-300 flex items-center gap-3">
+                  <span className="text-2xl font-normal leading-none">+</span> 새 로봇 궤적 데이터 업로드
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/[0.05] rounded-[2rem] p-8 flex flex-col shadow-sm">
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">내가 등록한 데이터</p>
+                  <p className="text-4xl font-extrabold text-slate-900 dark:text-white mt-auto">2 <span className="text-lg text-slate-400 font-medium">개</span></p>
+                </div>
+                <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/[0.05] rounded-[2rem] p-8 flex flex-col relative overflow-hidden group shadow-sm">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-[40px] group-hover:bg-green-500/20 transition-colors"></div>
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 relative z-10">누적 판매 수익</p>
+                  <p className="text-4xl font-extrabold text-green-600 dark:text-green-400 mt-auto relative z-10">14,250 <span className="text-lg font-bold text-green-700/50 dark:text-green-500/50">KNT</span></p>
+                </div>
+                <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/[0.05] rounded-[2rem] p-8 flex flex-col shadow-sm">
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">승인 대기 중</p>
+                  <p className="text-4xl font-extrabold text-amber-500 dark:text-amber-400 mt-auto">1 <span className="text-lg text-slate-400 font-medium text-amber-600/50 dark:text-amber-500/50">건</span></p>
+                </div>
+              </div>
+              
+              <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-12 mb-6 flex items-center gap-3">
+                <div className="w-2 h-6 bg-indigo-500 rounded-full"></div>
+                내 데이터 자산 관리
+              </h3>
+            </div>
+          )}
+
+          {displayAssets.length === 0 ? (
             <div className="flex flex-col items-center justify-center min-h-[40vh] text-center bg-white/50 dark:bg-white/[0.02] rounded-3xl border border-slate-200 dark:border-white/[0.05]">
               <span className="text-5xl mb-4 block opacity-50">🔍</span>
               <h3 className="text-xl font-bold text-slate-700 dark:text-slate-300">조건에 맞는 에셋이 없습니다.</h3>
@@ -207,7 +242,7 @@ export default function MarketExplorer({ role, onNavigate }) {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredAssets.map(asset => (
+              {displayAssets.map(asset => (
                 <div 
                   key={asset.id}
                   onClick={() => navigate(`/asset/${asset.id}`)}
@@ -235,7 +270,7 @@ export default function MarketExplorer({ role, onNavigate }) {
                       }}
                       className="text-xs font-bold px-4 py-2 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 hover:bg-indigo-600 hover:text-white transition-colors"
                     >
-                      {role === 'provider' ? '관리' : '구매'}
+                      {role === 'provider' ? '관리 / 수정' : '구매'}
                     </button>
                   </div>
                 </div>
