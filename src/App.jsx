@@ -14,7 +14,12 @@ function App() {
   const [isWalletConnected, setIsWalletConnected] = useState(false);
 
   // 공급자 / 수요자 모드 전환 상태
-  const [userRole, setUserRole] = useState('provider'); // 'provider' | 'buyer'
+  const [userRole, setUserRole] = useState('provider'); // 'provider' | 'buyer' | 'validator'
+
+  const handleRoleChange = (role) => {
+    setUserRole(role);
+    setCurrentView('dashboard');
+  };
 
   // 라우팅 뷰(페이지) 또는 토글(모드) 변경 시 스크롤 최상단으로 이동
   useEffect(() => {
@@ -79,19 +84,19 @@ function App() {
               ></div>
               
               <button 
-                onClick={() => setUserRole('provider')}
+                onClick={() => handleRoleChange('provider')}
                 className={`relative flex-1 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-extrabold transition-colors duration-300 z-10 ${userRole === 'provider' ? 'text-primary dark:text-white' : 'text-slate-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'}`}
               >
                 공급자
               </button>
               <button 
-                onClick={() => setUserRole('buyer')}
+                onClick={() => handleRoleChange('buyer')}
                 className={`relative flex-1 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-extrabold transition-colors duration-300 z-10 ${userRole === 'buyer' ? 'text-purple-600 dark:text-white' : 'text-slate-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'}`}
               >
                 수요자
               </button>
               <button 
-                onClick={() => setUserRole('validator')}
+                onClick={() => handleRoleChange('validator')}
                 className={`relative flex-1 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-extrabold transition-colors duration-300 z-10 ${userRole === 'validator' ? 'text-green-600 dark:text-white' : 'text-slate-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'}`}
               >
                 검증자
@@ -161,7 +166,7 @@ function App() {
         {currentView === 'dashboard' && userRole === 'validator' && <ValidatorDashboard />}
         
         {currentView === 'assetDetail' && <AssetDetail asset={selectedAsset} onBack={() => navigate('dashboard')} />}
-        {currentView === 'developer' && <DeveloperCenter onBack={() => navigate('dashboard')} />}
+        {currentView === 'developer' && <DeveloperCenter onBack={() => navigate('dashboard')} userRole={userRole} />}
         {currentView === 'bounty' && <BountyBoard userRole={userRole} />}
       </main>
 

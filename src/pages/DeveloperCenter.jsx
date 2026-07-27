@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-export default function DeveloperCenter({ onBack }) {
+export default function DeveloperCenter({ onBack, userRole }) {
   const [isStreaming, setIsStreaming] = useState(false);
   const [logs, setLogs] = useState([]);
   const terminalRef = useRef(null);
@@ -87,6 +87,24 @@ export default function DeveloperCenter({ onBack }) {
       }, 2000); // 2초간 텐서 암호화 뷰
     }, 1500); // 1.5초간 원본 추출 뷰
   };
+
+  // [Fallback UI] 수요자가 아닐 경우 접근 차단
+  if (userRole && userRole !== 'buyer') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] animate-fade-in relative z-10">
+        <div className="bg-white/40 dark:bg-white/[0.02] backdrop-blur-2xl p-16 rounded-[3rem] border border-slate-200 dark:border-white/[0.05] shadow-[0_30px_60px_rgba(0,0,0,0.1)] dark:shadow-[0_30px_60px_rgba(0,0,0,0.4)] flex flex-col items-center text-center max-w-xl w-full">
+          <div className="w-24 h-24 bg-red-100 dark:bg-red-500/10 rounded-full flex items-center justify-center mb-8 shadow-inner border border-red-200 dark:border-red-500/20">
+            <span className="text-5xl">🔒</span>
+          </div>
+          <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-4">API 리타겟팅 접근 제한</h2>
+          <p className="text-slate-500 dark:text-gray-400 font-medium text-lg leading-relaxed">
+            공급자 및 검증자는 개발자 센터 리타겟팅 API에 접근할 수 없습니다.<br/>
+            수요자 모드로 전환 후 다시 시도해 주세요.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     // 개발자 센터 강제 다크 테마 컨테이너 (App.jsx의 테마와 무관하게 독자적인 다크 환경 구축)
