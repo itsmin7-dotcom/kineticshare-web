@@ -7,6 +7,11 @@ export default function DeveloperCenter({ onBack }) {
 
   const [activeTab, setActiveTab] = useState('python');
 
+  // 리타겟팅 콘솔 State
+  const [retargetState, setRetargetState] = useState('idle'); // 'idle' | 'extracting' | 'latent' | 'streaming'
+  const [retargetLogs, setRetargetLogs] = useState([]);
+  const [targetHardware, setTargetHardware] = useState('unitree');
+
   // 사이버틱 스트리밍 JSON 제너레이터 (60fps)
   useEffect(() => {
     let interval;
@@ -32,6 +37,56 @@ export default function DeveloperCenter({ onBack }) {
     }
     return () => clearInterval(interval);
   }, [isStreaming]);
+
+  // AdaMorph 리타겟팅 시뮬레이터 (60fps)
+  useEffect(() => {
+    let interval;
+    if (retargetState !== 'idle') {
+      interval = setInterval(() => {
+        let newLog = '';
+        const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 23);
+        
+        if (retargetState === 'extracting') {
+           const mockJoints = ['r_shoulder', 'l_knee', 'pelvis'];
+           const randomJoint = mockJoints[Math.floor(Math.random() * mockJoints.length)];
+           newLog = `[${timestamp}] SRC_EXTRACT: {"dof_id": "${randomJoint}", "val": ${(Math.random()).toFixed(4)}}`;
+        } else if (retargetState === 'latent') {
+           // 매트릭스 느낌의 알 수 없는 암호 텐서
+           const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*';
+           let latentStr = '';
+           for(let i=0; i<30; i++) latentStr += chars.charAt(Math.floor(Math.random() * chars.length));
+           newLog = `[${timestamp}] LATENT_TENSOR: 0x${latentStr}`;
+        } else if (retargetState === 'streaming') {
+           const targetJoints = targetHardware === 'unitree' ? ['H1_L_Knee', 'H1_Torso'] : targetHardware === 'optimus' ? ['Optimus_Knee_Pitch', 'Optimus_Torso'] : ['Fig01_Hip', 'Fig01_Ankle'];
+           const randomJoint = targetJoints[Math.floor(Math.random() * targetJoints.length)];
+           newLog = `[${timestamp}] TGT_OPTIMIZED: {"tgt_id": "${randomJoint}", "q": ${(Math.random()).toFixed(4)}}`;
+        }
+        
+        setRetargetLogs(prev => {
+          const updated = [...prev, newLog];
+          if (updated.length > 20) return updated.slice(updated.length - 20);
+          return updated;
+        });
+      }, 16);
+    }
+    return () => clearInterval(interval);
+  }, [retargetState, targetHardware]);
+
+  const handleRetargeting = () => {
+    if(retargetState !== 'idle') {
+      setRetargetState('idle');
+      setRetargetLogs([]);
+      return;
+    }
+    
+    setRetargetState('extracting');
+    setTimeout(() => {
+      setRetargetState('latent');
+      setTimeout(() => {
+        setRetargetState('streaming');
+      }, 2000); // 2초간 텐서 암호화 뷰
+    }, 1500); // 1.5초간 원본 추출 뷰
+  };
 
   return (
     // 개발자 센터 강제 다크 테마 컨테이너 (App.jsx의 테마와 무관하게 독자적인 다크 환경 구축)
@@ -196,6 +251,91 @@ STREAM_URL = <span className="text-green-300">"wss://api.kineticshare.com/v2/str
           
         </div>
       </div>
+
+      {/* [하단 패널] Kinetic API 리타겟팅(Retargeting) 콘솔 */}
+      <div className="mt-8 rounded-2xl bg-[#0a0a0c] border border-slate-800 shadow-2xl overflow-hidden relative z-10 flex flex-col md:flex-row">
+        
+        {/* 좌측 입력 폼 영역 */}
+        <div className="md:w-1/3 p-8 border-r border-slate-800 flex flex-col justify-center">
+          <div className="mb-6">
+            <span className="px-3 py-1 bg-cyan-500/10 text-cyan-400 text-xs font-bold rounded-full border border-cyan-500/30 uppercase tracking-widest mb-3 inline-block">ADAMORPH ENGINE</span>
+            <h2 className="text-2xl font-extrabold text-white mb-2">리타겟팅 콘솔</h2>
+            <p className="text-sm text-slate-500">이기종 하드웨어 간 모션 데이터 실시간 호환성 변환(Retargeting) 시뮬레이션</p>
+          </div>
+
+          <div className="space-y-5">
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-2">원본 데이터 스펙 (Source)</label>
+              <select disabled className="w-full bg-[#111115] border border-slate-800 rounded-xl px-4 py-3 text-slate-300 text-sm appearance-none cursor-not-allowed">
+                <option>27 DoF (Apple Vision Pro 모션 캡처)</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-xs font-bold text-cyan-500 mb-2">대상 로봇 하드웨어 (Target URDF)</label>
+              <select 
+                value={targetHardware}
+                onChange={(e) => setTargetHardware(e.target.value)}
+                disabled={retargetState !== 'idle'}
+                className="w-full bg-[#16161a] border border-cyan-500/30 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-cyan-400 appearance-none transition-colors disabled:opacity-50"
+              >
+                <option value="unitree">Unitree H1 (19 DoF)</option>
+                <option value="optimus">Tesla Optimus Gen 2 (28 DoF)</option>
+                <option value="figure">Figure 01 (32 DoF)</option>
+              </select>
+            </div>
+
+            <button 
+              onClick={handleRetargeting}
+              className={`w-full mt-2 py-4 rounded-xl font-extrabold text-sm transition-all duration-300 shadow-lg ${
+                retargetState !== 'idle'
+                ? 'bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20' 
+                : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 hover:bg-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.2)] hover:-translate-y-0.5'
+              }`}
+            >
+              {retargetState !== 'idle' ? '■ 리타겟팅 중단' : '⚡ AdaMorph 리타겟팅 실행'}
+            </button>
+          </div>
+        </div>
+
+        {/* 우측 터미널 시뮬레이터 영역 */}
+        <div className="md:w-2/3 bg-black p-6 font-mono text-xs sm:text-sm flex flex-col justify-end relative h-[350px] md:h-auto overflow-hidden">
+          {retargetState === 'idle' ? (
+            <div className="h-full flex flex-col items-center justify-center text-slate-700 space-y-3 opacity-60">
+              <span className="text-4xl">🎛️</span>
+              <p>좌측에서 대상 로봇을 선택하고 리타겟팅을 실행하세요.</p>
+            </div>
+          ) : (
+            <div className="w-full flex flex-col space-y-1 z-10">
+              {retargetLogs.map((log, idx) => {
+                // 상태별 컬러링
+                let colorClass = 'text-slate-400';
+                if (log.includes('SRC_EXTRACT')) colorClass = 'text-blue-400 drop-shadow-[0_0_2px_rgba(96,165,250,0.5)]';
+                if (log.includes('LATENT_TENSOR')) colorClass = 'text-purple-400 font-bold drop-shadow-[0_0_5px_rgba(192,132,252,0.8)]';
+                if (log.includes('TGT_OPTIMIZED')) colorClass = 'text-cyan-400 drop-shadow-[0_0_2px_rgba(34,211,238,0.5)]';
+                
+                return (
+                  <div key={idx} className={`${colorClass} break-all`}>
+                    {log}
+                  </div>
+                );
+              })}
+              <div className="animate-pulse mt-2 
+                {retargetState === 'extracting' ? 'text-blue-400' : retargetState === 'latent' ? 'text-purple-400' : 'text-cyan-400'}">_</div>
+            </div>
+          )}
+          
+          {/* 상태별 배경 오라(Aura) 효과 */}
+          {retargetState === 'latent' && (
+            <div className="absolute inset-0 bg-purple-900/10 blur-[50px] z-0 animate-pulse"></div>
+          )}
+          {retargetState === 'streaming' && (
+            <div className="absolute inset-0 bg-cyan-900/10 blur-[50px] z-0"></div>
+          )}
+        </div>
+
+      </div>
+
     </div>
   );
 }

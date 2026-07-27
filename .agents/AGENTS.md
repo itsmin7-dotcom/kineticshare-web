@@ -1,8 +1,16 @@
-# 프로젝트 커스텀 규칙 (Workspace Rules)
+# KineticShare Agent Working Guidelines
 
-## 1. Auto Git Push on Approval (자동 커밋 및 푸시)
-- 사용자가 특정 기능 개발이나 코드 수정 결과를 확인하고 **"좋아, 다음 단계로 가자"** 혹은 **"완료됐어"** 등 승인의 의미를 담은 메시지를 주면, 별도의 명시적인 Git(깃) 명령을 내리지 않아도 에이전트가 알아서 다음의 작업을 백그라운드에서 즉시 수행한다:
-  1. 모든 변경 사항을 스테이징 (`git add .`)
-  2. 작업 내용을 잘 설명하는 적절한 커밋 메시지를 작성하여 커밋 (`git commit -m "[타입]: [작업내용]"`)
-  3. 즉시 원격 GitHub 레포지토리의 main 브랜치로 Push 완료 (`git push -u origin main`)
-- 푸시가 완료되면 사용자에게 "자동으로 원격 레포지토리에 푸시를 완료했습니다"라고 간단히 안내한다.
+본 문서는 KineticShare-Web 프로젝트에서 에이전트가 코드를 작성하거나 수정할 때 반드시 준수해야 하는 최상위 작업 규약(Rules)을 정의합니다. 향후 모든 코드 작성 및 의사 결정의 기준점이 됩니다.
+
+## 1. UI/UX 테마 강제 (Design System)
+모든 컴포넌트와 화면은 다음의 시각적 원칙을 엄격히 준수해야 합니다.
+- **Tailwind CSS 기반 글래스모피즘(Glassmorphism):** 배경 투명도 혼합(`bg-white/10`, `bg-black/40`), 블러 효과(`backdrop-blur-md`, `blur-3xl`), 빛나는 테두리(`border-white/10`, `border-primary/30`) 등의 속성을 조합하여 세련된 애플 스타일의 미니멀리즘과 사이버틱함을 동시에 연출합니다.
+- **벤토 그리드(Bento Grid) 레이아웃:** 복잡한 정보와 뷰는 `grid`와 `col-span`을 활용하여 모서리가 둥근 벤토 박스(카드) 형태로 깔끔하게 분할하고 모듈화합니다.
+
+## 2. 라우팅 및 상태 관리 (Routing & State)
+- **화면 전환 렌더링:** `react-router-dom` 등 외부 라이브러리에 의존하지 않고, 오직 `App.jsx`의 `currentView` 상태(`'dashboard' | 'developer' | 'bounty' | 'assetDetail'`) 및 `userRole` 상태(`'provider' | 'buyer' | 'validator'`)를 기반으로 조건부 컴포넌트 렌더링을 수행합니다.
+- **글로벌 모달 처리 (React Portal):** 모달 폼이나 오버레이 창을 띄울 때는 벤토 그리드나 부모 컴포넌트의 오버플로우(overflow) 속성에 갇히지 않도록, 반드시 `react-dom`의 `createPortal`을 사용하여 문서 최상단(`document.body`)에 렌더링해야 합니다.
+
+## 3. 코드 안전성 및 보존 (Safety & Stability)
+- **보존 최우선:** 정상적으로 작동하고 있는 기존의 코드, 상태 로직, 컴포넌트, 주석 등을 임의로 축소하거나 삭제하지 않습니다.
+- **사전 검증:** 신규 기능이나 뷰를 추가할 경우, 이것이 기존의 복잡한 상태(State) 생명주기 및 렌더링 로직(예: Hooks 룰, Early Return)과 충돌을 일으키지 않는지 머릿속으로 시뮬레이션하고 최우선으로 검증해야 합니다.

@@ -10,16 +10,26 @@ const mockBounties = [
 export default function BountyBoard({ userRole }) {
   const [bounties, setBounties] = useState(mockBounties);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [txState, setTxState] = useState('idle'); // 'idle' | 'signing' | 'processing' | 'success'
+  const [bountyReward, setBountyReward] = useState('');
 
   const handleCreateBounty = (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    setTxState('signing'); // 1. 서명 대기 (예치금 분할 계산 노출)
+    
     setTimeout(() => {
-      setIsSubmitting(false);
-      setIsModalOpen(false);
-      alert('신규 바운티 의뢰가 성공적으로 등록되었습니다.');
-    }, 1500);
+      setTxState('processing'); // 2. 트랜잭션 처리 중 (스피너)
+      
+      setTimeout(() => {
+        setTxState('success'); // 3. 완료
+        
+        setTimeout(() => {
+          setIsModalOpen(false);
+          setTxState('idle');
+          setBountyReward('');
+        }, 2000); // 2초 후 닫힘
+      }, 2500);
+    }, 2000);
   };
 
   // [1] 검증자(Validator) 예외 처리 뷰
@@ -73,45 +83,103 @@ export default function BountyBoard({ userRole }) {
       {/* 수요자 모달 폼 (React Portal) */}
       {isModalOpen && createPortal(
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6" style={{ WebkitTransform: 'translateZ(0)' }}>
-          <div className="absolute inset-0 bg-slate-900/60 dark:bg-black/80 backdrop-blur-md transition-all duration-500 animate-fade-in" onClick={() => !isSubmitting && setIsModalOpen(false)}></div>
+          <div className="absolute inset-0 bg-slate-900/60 dark:bg-black/80 backdrop-blur-md transition-all duration-500 animate-fade-in" onClick={() => txState === 'idle' && setIsModalOpen(false)}></div>
           
-          <div className="relative w-full max-w-2xl bg-white/95 dark:bg-[#0a0a0c]/95 backdrop-blur-3xl border border-white/50 dark:border-white/[0.08] rounded-[2.5rem] shadow-[0_30px_60px_rgba(0,0,0,0.5)] dark:shadow-[0_30px_60px_rgba(0,0,0,0.9)] p-10 animate-fade-in">
-            <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-8">신규 바운티 의뢰 등록</h2>
+          <div className="relative w-full max-w-2xl bg-white/95 dark:bg-[#0a0a0c]/95 backdrop-blur-3xl border border-white/50 dark:border-white/[0.08] rounded-[2.5rem] shadow-[0_30px_60px_rgba(0,0,0,0.5)] dark:shadow-[0_30px_60px_rgba(0,0,0,0.9)] p-10 animate-fade-in min-h-[400px] flex flex-col justify-center">
             
-            <form onSubmit={handleCreateBounty} className="space-y-6">
-              <div>
-                <label className="block text-sm font-bold text-slate-700 dark:text-gray-300 mb-2">바운티 제목</label>
-                <input type="text" required placeholder="예: Unitree H1용 문 열기 동작 데이터" className="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-4 text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 transition-colors" />
-              </div>
+            {txState === 'idle' ? (
+              <>
+                <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-8">신규 바운티 의뢰 등록</h2>
+                <form onSubmit={handleCreateBounty} className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 dark:text-gray-300 mb-2">바운티 제목</label>
+                    <input type="text" required placeholder="예: Unitree H1용 문 열기 동작 데이터" className="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-4 text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 transition-colors" />
+                  </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 dark:text-gray-300 mb-2">타겟 로봇 기종</label>
-                  <select className="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-4 text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 transition-colors appearance-none">
-                    <option value="tesla">Tesla Optimus Gen 2</option>
-                    <option value="unitree">Unitree H1</option>
-                    <option value="figure">Figure 01</option>
-                    <option value="other">기타 커스텀 하드웨어</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 dark:text-gray-300 mb-2">현상금 규모 (KNT)</label>
-                  <input type="number" required min="100" placeholder="5000" className="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-4 text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 font-mono font-bold transition-colors" />
-                </div>
-              </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-gray-300 mb-2">타겟 로봇 기종</label>
+                      <select className="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-4 text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 transition-colors appearance-none">
+                        <option value="tesla">Tesla Optimus Gen 2</option>
+                        <option value="unitree">Unitree H1</option>
+                        <option value="figure">Figure 01</option>
+                        <option value="other">기타 커스텀 하드웨어</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-gray-300 mb-2">현상금 규모 (KNT)</label>
+                      <input 
+                        type="number" required min="100" placeholder="5000" 
+                        value={bountyReward}
+                        onChange={(e) => setBountyReward(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-4 text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 font-mono font-bold transition-colors" 
+                      />
+                    </div>
+                  </div>
 
-              <div>
-                <label className="block text-sm font-bold text-slate-700 dark:text-gray-300 mb-2">필요 모션 상세 설명</label>
-                <textarea required rows="4" placeholder="데이터 수집 환경 및 필수 충족 요건을 상세히 기술해주세요." className="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-4 text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 transition-colors resize-none"></textarea>
-              </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 dark:text-gray-300 mb-2">필요 모션 상세 설명</label>
+                    <textarea required rows="4" placeholder="데이터 수집 환경 및 필수 충족 요건을 상세히 기술해주세요." className="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-4 text-slate-900 dark:text-white focus:outline-none focus:border-purple-500 dark:focus:border-purple-400 transition-colors resize-none"></textarea>
+                  </div>
 
-              <div className="pt-6 flex gap-4">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 rounded-full font-bold text-slate-600 dark:text-gray-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">취소</button>
-                <button type="submit" disabled={isSubmitting} className="flex-[2] py-4 rounded-full bg-purple-600 text-white font-extrabold text-lg hover:bg-purple-700 transition-all shadow-[0_10px_20px_rgba(147,72,234,0.3)] disabled:opacity-70 disabled:cursor-wait">
-                  {isSubmitting ? '스마트 컨트랙트 에스크로 등록 중...' : '바운티 게시 및 예치'}
-                </button>
+                  <div className="pt-6 flex gap-4">
+                    <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 rounded-full font-bold text-slate-600 dark:text-gray-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">취소</button>
+                    <button type="submit" className="flex-[2] py-4 rounded-full bg-purple-600 text-white font-extrabold text-lg hover:bg-purple-700 transition-all shadow-[0_10px_20px_rgba(147,72,234,0.3)]">
+                      바운티 게시 및 예치
+                    </button>
+                  </div>
+                </form>
+              </>
+            ) : (
+              /* 트랜잭션 진행 뷰 */
+              <div className="flex flex-col items-center text-center animate-fade-in py-10">
+                {txState === 'success' ? (
+                  <div className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mb-6 shadow-inner border border-green-500/30">
+                    <span className="text-5xl">✔️</span>
+                  </div>
+                ) : (
+                  <div className="w-20 h-20 border-4 border-slate-200 dark:border-white/10 border-t-purple-600 dark:border-t-purple-500 rounded-full animate-spin mb-8"></div>
+                )}
+
+                <h2 className={`text-2xl font-extrabold mb-4 transition-colors ${txState === 'success' ? 'text-green-500 dark:text-green-400' : 'text-slate-900 dark:text-white'}`}>
+                  {txState === 'signing' && '스마트 컨트랙트 에스크로 예치 중...'}
+                  {txState === 'processing' && '블록체인 네트워크 검증 대기 중...'}
+                  {txState === 'success' && '에스크로 결제 완료!'}
+                </h2>
+
+                {/* 예치금 분할 내역 */}
+                {txState !== 'success' && bountyReward && (
+                  <div className="w-full max-w-sm bg-slate-50 dark:bg-white/[0.03] rounded-2xl p-6 border border-slate-200 dark:border-white/[0.05] mt-4 mb-2 text-left">
+                    <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mb-4 text-center">예치금 분할 내역</p>
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-slate-700 dark:text-gray-300 font-medium">총 예치액</span>
+                      <span className="font-mono font-bold text-slate-900 dark:text-white">{Number(bountyReward).toLocaleString()} KNT</span>
+                    </div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm text-purple-600 dark:text-purple-400 font-bold">└ 공급자 보상 (85%)</span>
+                      <span className="text-sm font-mono font-bold text-purple-600 dark:text-purple-400">{(Number(bountyReward) * 0.85).toLocaleString()} KNT</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-slate-500 dark:text-gray-500 font-bold">└ Kleros 중재/예비금 (15%)</span>
+                      <span className="text-sm font-mono font-bold text-slate-500 dark:text-gray-500">{(Number(bountyReward) * 0.15).toLocaleString()} KNT</span>
+                    </div>
+                  </div>
+                )}
+
+                {txState === 'success' && (
+                  <div className="bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/20 px-6 py-4 rounded-xl mt-4">
+                    <p className="text-green-600 dark:text-green-400 font-mono text-sm font-bold tracking-tight break-all">
+                      Escrow Locked (TxHash: 0x7a3...c91)
+                    </p>
+                  </div>
+                )}
+                
+                <p className="text-slate-500 text-sm font-medium mt-6">
+                  {txState !== 'success' ? '메타마스크 서명을 확인해 주세요.' : '바운티 목록에 자동으로 게시됩니다.'}
+                </p>
               </div>
-            </form>
+            )}
+            
           </div>
         </div>,
         document.body
