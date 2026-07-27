@@ -30,7 +30,10 @@ export default function ModalShell({ isOpen, onClose, title, children }) {
       <div className="absolute inset-0 cursor-pointer" onClick={onClose}></div>
       
       {/* 모달 윈도우 */}
-      <div className="bg-white dark:bg-[#111115] rounded-[2rem] w-full max-w-2xl shadow-[0_30px_60px_rgba(0,0,0,0.6)] border border-slate-200 dark:border-white/10 flex flex-col relative z-10 transform transition-transform">
+      <div 
+        className="bg-white dark:bg-[#111115] rounded-[2rem] w-full max-w-2xl shadow-[0_30px_60px_rgba(0,0,0,0.6)] border border-slate-200 dark:border-white/10 flex flex-col relative z-10 transform transition-transform"
+        onWheel={(e) => e.stopPropagation()}
+      >
         
         {/* 모달 헤더 (Sticky) */}
         <div className="sticky top-0 bg-white/80 dark:bg-[#111115]/80 backdrop-blur-xl px-8 py-6 border-b border-slate-200 dark:border-white/5 flex items-center justify-between z-20 rounded-t-[2rem]">
@@ -44,7 +47,7 @@ export default function ModalShell({ isOpen, onClose, title, children }) {
         </div>
         
         {/* 모달 내부 컨텐츠 (스크롤 가능 영역) */}
-        <div className="max-h-[80vh] overflow-y-auto hide-scrollbar p-8">
+        <div className="max-h-[75vh] overflow-y-auto hide-scrollbar p-8">
           {children}
         </div>
       </div>
