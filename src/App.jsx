@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom'
-import Dashboard from './pages/Dashboard'
+import { Routes, Route, Link, useNavigate, useLocation, Navigate } from 'react-router-dom'
+import MarketExplorer from './pages/MarketExplorer'
 import AssetDetail from './pages/AssetDetail'
 import DeveloperCenter from './pages/DeveloperCenter'
 import ValidatorDashboard from './pages/ValidatorDashboard'
@@ -42,7 +42,7 @@ function App() {
 
   const handleRoleChange = (role) => {
     setUserRole(role);
-    navigate('/');
+    navigate(`/${role}`);
   };
 
   // 라우팅 변경 시 스크롤 최상단으로 이동
@@ -68,7 +68,7 @@ function App() {
 
   // 하위 컴포넌트 호환성을 위한 네비게이션 래퍼
   const handleNavigate = (view, asset = null) => {
-    if (view === 'dashboard') navigate('/');
+    if (view === 'dashboard') navigate(`/${userRole}`);
     else if (view === 'assetDetail') navigate('/asset-detail', { state: { asset } });
     else navigate(`/${view}`);
   };
@@ -211,11 +211,13 @@ function App() {
       </nav>
 
       {/* 3. 메인 라우팅 영역 */}
-      <main className="pt-32 pb-24 px-4 sm:px-6 max-w-7xl mx-auto relative z-10">
+      <main className="pt-32 pb-24 px-4 sm:px-6 max-w-[1600px] mx-auto relative z-10">
         <Routes>
-          <Route path="/" element={
-            userRole === 'validator' ? <ValidatorDashboard /> : <Dashboard onNavigate={handleNavigate} userRole={userRole} />
-          } />
+          <Route path="/" element={<Navigate to={`/${userRole}`} replace />} />
+          <Route path="/provider" element={<MarketExplorer role="provider" onNavigate={handleNavigate} />} />
+          <Route path="/consumer" element={<MarketExplorer role="consumer" onNavigate={handleNavigate} />} />
+          <Route path="/validator" element={<ValidatorDashboard />} />
+          
           <Route path="/asset-detail" element={<AssetDetailWrapper onNavigate={handleNavigate} />} />
           <Route path="/developer" element={<DeveloperCenter onBack={() => navigate('/')} userRole={userRole} />} />
           <Route path="/bounty" element={<BountyBoard userRole={userRole} />} />
