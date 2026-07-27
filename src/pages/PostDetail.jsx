@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../utils/supabase/client';
+import { useParams, useNavigate } from 'react-router-dom';
 
-export default function PostDetail({ post, onBack, session, onOpenAuth }) {
+export default function PostDetail({ session, onOpenAuth }) {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  
+  const [post, setPost] = useState(null);
+  const [loadingPost, setLoadingPost] = useState(true);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   
@@ -9,18 +15,36 @@ export default function PostDetail({ post, onBack, session, onOpenAuth }) {
   const [isLiked, setIsLiked] = useState(false);
   const [isLikeProcessing, setIsLikeProcessing] = useState(false);
 
-  // 1. 조회수 증가 (RPC 호출)
+  // 1. 단일 게시글 패칭 및 조회수 증가 (RPC 호출)
   useEffect(() => {
-    const incrementView = async () => {
-      // 조회수는 DB의 rpc 함수를 사용하여 1 증가시킴 (동시성 방지)
-      const { error } = await supabase.rpc('increment_view_count', { row_id: post.id });
-      if (error) console.error('조회수 업데이트 에러:', error);
-    };
-    incrementView();
-  }, [post.id]);
+    const fetchPostAndIncrement = async () => {
+      setLoadingPost(true);
+      // 게시글 조회
+      const { data: postData, error: fetchError } = await supabase
+        .from('posts')
+        .select('*, profiles!author_id(username)')
+        .eq('id', id)
+        .single();
+        
+      if (fetchError || !postData) {
+        console.error('Post fetch error:', fetchError);
+        navigate('/community');
+        return;
+      }
+      setPost(postData);
+      setLoadingPost(false);
 
-  // 2. 초기 데이터 (댓글 및 좋아요) 로드
+      // 조회수는 DB의 rpc 함수를 사용하여 1 증가시킴 (동시성 방지)
+      const { error: rpcError } = await supabase.rpc('increment_view_count', { row_id: id });
+      if (rpcError) console.error('조회수 업데이트 에러:', rpcError);
+    };
+    fetchPostAndIncrement();
+  }, [id, navigate]);
+
+  // 2. 댓글 및 좋아요 로드 (게시글이 로드된 후)
   useEffect(() => {
+    if (!post) return;
+
     const loadData = async () => {
       // 댓글 패칭 (외래키 조인으로 작성자 프로필 정보 획득)
       const { data: commentsData, error: commentsError } = await supabase
@@ -53,7 +77,7 @@ export default function PostDetail({ post, onBack, session, onOpenAuth }) {
     };
     
     loadData();
-  }, [post.id, session]);
+  }, [post, session]);
 
   // 3. 좋아요 토글 (Optimistic UI)
   const handleLikeToggle = async () => {
@@ -122,12 +146,29 @@ export default function PostDetail({ post, onBack, session, onOpenAuth }) {
     }
   };
 
+  if (loadingPost) {
+    return (
+      <div className="bg-white/80 dark:bg-[#0a0a0c]/90 backdrop-blur-3xl rounded-[2.5rem] border border-slate-200 dark:border-white/[0.05] p-8 lg:p-12 shadow-sm animate-pulse">
+        <div className="h-4 bg-slate-200 dark:bg-white/10 rounded w-24 mb-8"></div>
+        <div className="h-10 bg-slate-200 dark:bg-white/10 rounded w-2/3 mb-6"></div>
+        <div className="h-4 bg-slate-200 dark:bg-white/10 rounded w-1/3 mb-12"></div>
+        <div className="space-y-4 mb-12">
+          <div className="h-4 bg-slate-200 dark:bg-white/10 rounded w-full"></div>
+          <div className="h-4 bg-slate-200 dark:bg-white/10 rounded w-full"></div>
+          <div className="h-4 bg-slate-200 dark:bg-white/10 rounded w-4/5"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!post) return null;
+
   return (
     <div className="bg-white/80 dark:bg-[#0a0a0c]/90 backdrop-blur-3xl rounded-[2.5rem] border border-slate-200 dark:border-white/[0.05] p-8 lg:p-12 shadow-[0_20px_60px_rgba(0,0,0,0.05)] dark:shadow-[0_30px_80px_rgba(0,0,0,0.5)] animate-fade-in relative z-10">
       
       {/* 상단 네비게이션 */}
       <button 
-        onClick={onBack}
+        onClick={() => navigate('/community')}
         className="mb-8 flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
       >
         <span className="text-xl">←</span> 목록으로 돌아가기
@@ -135,6 +176,11 @@ export default function PostDetail({ post, onBack, session, onOpenAuth }) {
 
       {/* 게시글 본문 영역 */}
       <article className="mb-12">
+        {post.category && (
+          <span className="inline-block px-3 py-1 mb-4 text-xs font-black rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+            {post.category}
+          </span>
+        )}
         <h1 className="text-3xl lg:text-5xl font-extrabold text-slate-900 dark:text-white mb-6 leading-tight">
           {post.title}
         </h1>

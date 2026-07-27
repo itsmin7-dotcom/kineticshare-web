@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react'
+import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom'
 import Dashboard from './pages/Dashboard'
 import AssetDetail from './pages/AssetDetail'
 import DeveloperCenter from './pages/DeveloperCenter'
 import ValidatorDashboard from './pages/ValidatorDashboard'
 import BountyBoard from './pages/BountyBoard'
-import SupabaseTest from './pages/SupabaseTest'
+import CommunityBoard from './pages/CommunityBoard'
+import PostWrite from './pages/PostWrite'
+import PostDetail from './pages/PostDetail'
 import AuthModal from './components/AuthModal'
 import { supabase } from './utils/supabase/client'
 
 function App() {
-  const [currentView, setCurrentView] = useState('dashboard');
-  const [selectedAsset, setSelectedAsset] = useState(null);
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isDarkMode, setIsDarkMode] = useState(true);
   
   // 지갑 연결 상태 로직
@@ -39,13 +42,13 @@ function App() {
 
   const handleRoleChange = (role) => {
     setUserRole(role);
-    setCurrentView('dashboard');
+    navigate('/');
   };
 
-  // 라우팅 뷰(페이지) 또는 토글(모드) 변경 시 스크롤 최상단으로 이동
+  // 라우팅 변경 시 스크롤 최상단으로 이동
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-  }, [currentView, userRole]);
+  }, [location.pathname, userRole]);
 
   // 시스템 테마 감지 및 초기화
   useEffect(() => {
@@ -63,9 +66,11 @@ function App() {
     }
   }, [isDarkMode]);
 
-  const navigate = (view, asset = null) => {
-    setSelectedAsset(asset);
-    setCurrentView(view);
+  // 하위 컴포넌트 호환성을 위한 네비게이션 래퍼
+  const handleNavigate = (view, asset = null) => {
+    if (view === 'dashboard') navigate('/');
+    else if (view === 'assetDetail') navigate('/asset-detail', { state: { asset } });
+    else navigate(`/${view}`);
   };
 
   return (
@@ -80,9 +85,9 @@ function App() {
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           
           {/* 좌측 로고 영역 */}
-          <div 
+          <Link 
+            to="/"
             className="flex items-center gap-3 cursor-pointer group flex-1"
-            onClick={() => navigate('dashboard')}
           >
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-primary to-cyan-400 flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.5)] group-hover:scale-105 transition-transform duration-300">
               <span className="text-white font-black text-xl tracking-tighter">K</span>
@@ -90,7 +95,7 @@ function App() {
             <span className="font-extrabold text-2xl tracking-tight bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent transition-colors hidden sm:block">
               KineticShare
             </span>
-          </div>
+          </Link>
 
           {/* 중앙 토글 (공급자 / 수요자 / 검증자) */}
           <div className="flex-1 flex justify-center">
@@ -130,24 +135,24 @@ function App() {
             
             {/* 메뉴 영역 */}
             <div className="hidden md:flex items-center gap-6 mr-2">
-              <button 
-                onClick={() => navigate('bounty')}
-                className={`text-sm font-extrabold transition-colors ${currentView === 'bounty' ? 'text-purple-600 dark:text-purple-400' : 'text-slate-500 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white'}`}
+              <Link 
+                to="/bounty"
+                className={`text-sm font-extrabold transition-colors ${location.pathname === '/bounty' ? 'text-purple-600 dark:text-purple-400' : 'text-slate-500 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white'}`}
               >
                 바운티 게시판
-              </button>
-              <button 
-                onClick={() => navigate('developer')}
-                className={`text-sm font-extrabold transition-colors ${currentView === 'developer' ? 'text-primary dark:text-cyan-400' : 'text-slate-500 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white'}`}
+              </Link>
+              <Link 
+                to="/developer"
+                className={`text-sm font-extrabold transition-colors ${location.pathname === '/developer' ? 'text-primary dark:text-cyan-400' : 'text-slate-500 hover:text-slate-900 dark:text-gray-400 dark:hover:text-white'}`}
               >
                 개발자 센터
-              </button>
-              <button 
-                onClick={() => navigate('supabase_test')}
-                className={`text-sm font-extrabold transition-colors flex items-center gap-1 ${currentView === 'supabase_test' ? 'text-green-500' : 'text-slate-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400'}`}
+              </Link>
+              <Link 
+                to="/community"
+                className={`text-sm font-extrabold transition-colors flex items-center gap-1 ${location.pathname.startsWith('/community') ? 'text-green-500' : 'text-slate-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400'}`}
               >
-                🛠️ DB 테스트
-              </button>
+                💬 커뮤니티 보드
+              </Link>
             </div>
 
             {/* 라이트/다크 테마 토글 버튼 & 로그인(Auth) 버튼 */}
@@ -207,19 +212,32 @@ function App() {
 
       {/* 3. 메인 라우팅 영역 */}
       <main className="pt-32 pb-24 px-4 sm:px-6 max-w-7xl mx-auto relative z-10">
-        {currentView === 'dashboard' && (userRole === 'provider' || userRole === 'buyer') && <Dashboard onNavigate={navigate} userRole={userRole} />}
-        {currentView === 'dashboard' && userRole === 'validator' && <ValidatorDashboard />}
-        
-        {currentView === 'assetDetail' && <AssetDetail asset={selectedAsset} onBack={() => navigate('dashboard')} />}
-        {currentView === 'developer' && <DeveloperCenter onBack={() => navigate('dashboard')} userRole={userRole} />}
-        {currentView === 'bounty' && <BountyBoard userRole={userRole} />}
-        {currentView === 'supabase_test' && <SupabaseTest onBack={() => navigate('dashboard')} session={session} onOpenAuth={() => setIsAuthOpen(true)} />}
+        <Routes>
+          <Route path="/" element={
+            userRole === 'validator' ? <ValidatorDashboard /> : <Dashboard onNavigate={handleNavigate} userRole={userRole} />
+          } />
+          <Route path="/asset-detail" element={<AssetDetailWrapper onNavigate={handleNavigate} />} />
+          <Route path="/developer" element={<DeveloperCenter onBack={() => navigate('/')} userRole={userRole} />} />
+          <Route path="/bounty" element={<BountyBoard userRole={userRole} />} />
+          
+          <Route path="/community" element={<CommunityBoard session={session} onOpenAuth={() => setIsAuthOpen(true)} />} />
+          <Route path="/community/write" element={<PostWrite session={session} onOpenAuth={() => setIsAuthOpen(true)} />} />
+          <Route path="/community/:id" element={<PostDetail session={session} onOpenAuth={() => setIsAuthOpen(true)} onBack={() => navigate('/community')} />} />
+        </Routes>
       </main>
 
       {/* 글로벌 인증 모달 */}
       {isAuthOpen && <AuthModal onClose={() => setIsAuthOpen(false)} />}
     </div>
   )
+}
+
+// AssetDetail 호환성을 위한 래퍼
+function AssetDetailWrapper({ onNavigate }) {
+  const location = useLocation();
+  const asset = location.state?.asset;
+  if (!asset) return <div>Invalid Asset Data</div>;
+  return <AssetDetail asset={asset} onBack={() => onNavigate('dashboard')} />;
 }
 
 export default App
