@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
+import UploadModal from '../components/modals/UploadModal';
+import ScheduleModal from '../components/modals/ScheduleModal';
+import RentalModal from '../components/modals/RentalModal';
+
 const FILTER_CATEGORIES = {
   form: [
     { id: 'bipedal', label: '2족 보행' },
@@ -419,164 +423,19 @@ export default function MarketExplorer({ role, onNavigate }) {
         </div>
       )}
       
-      {/* 5. 로봇 데이터 업로드 모달 */}
-      {activeModal === 'upload' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-white dark:bg-[#111115] rounded-[2rem] w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-[0_30px_60px_rgba(0,0,0,0.4)] border border-slate-200 dark:border-white/10 flex flex-col transform transition-transform">
-            <div className="sticky top-0 bg-white/80 dark:bg-[#111115]/80 backdrop-blur-md px-8 py-6 border-b border-slate-200 dark:border-white/5 flex items-center justify-between z-20">
-              <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">새 궤적 데이터 업로드</h2>
-              <button onClick={() => setActiveModal(null)} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">
-                <span className="text-slate-500 dark:text-white font-bold">✕</span>
-              </button>
-            </div>
-            
-            <div className="p-8 flex flex-col gap-6">
-              <div>
-                <label className="block text-sm font-bold text-slate-700 dark:text-gray-300 mb-2">데이터 자산명</label>
-                <input type="text" placeholder="예: 정밀 바리스타 핸드드립 모션 텐서" className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors" />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-bold text-slate-700 dark:text-gray-300 mb-2">상세 설명</label>
-                <textarea rows="3" placeholder="동작의 특성 및 주의사항을 상세히 적어주세요." className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors resize-none"></textarea>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 dark:text-gray-300 mb-2">로봇 형태</label>
-                  <select className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 appearance-none font-bold">
-                    <option value="bipedal">2족 보행</option>
-                    <option value="quadruped">4족 보행</option>
-                    <option value="arm">다관절 암</option>
-                    <option value="drone">드론</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 dark:text-gray-300 mb-2">모션 타입</label>
-                  <select className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 appearance-none font-bold">
-                    <option value="locomotion">이동 (Locomotion)</option>
-                    <option value="grasping">파지 (Grasping)</option>
-                    <option value="simulation">시뮬레이션</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 dark:text-gray-300 mb-2">제어 환경</label>
-                  <select className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 appearance-none font-bold">
-                    <option value="ros1">ROS 1</option>
-                    <option value="ros2">ROS 2</option>
-                    <option value="pytorch">PyTorch</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 dark:text-gray-300 mb-2">토큰 가격 (KNT)</label>
-                  <input type="number" placeholder="예: 1200" className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors font-bold" />
-                </div>
-              </div>
-
-              {/* 파일 업로드 존 */}
-              <div className="mt-2 border-2 border-dashed border-slate-300 dark:border-white/20 rounded-2xl p-8 flex flex-col items-center justify-center bg-slate-50/50 dark:bg-black/20 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer group">
-                <div className="w-16 h-16 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-4 group-hover:scale-110 transition-transform">
-                  <span className="text-2xl">📁</span>
-                </div>
-                <p className="text-sm font-bold text-slate-900 dark:text-white mb-1">궤적 데이터 파일 업로드</p>
-                <p className="text-xs text-slate-500 dark:text-gray-400 font-medium">.bag, .csv, .pt 형식 지원 (최대 5GB)</p>
-              </div>
-            </div>
-
-            <div className="sticky bottom-0 bg-white dark:bg-[#111115] border-t border-slate-200 dark:border-white/5 p-6 flex justify-end gap-3 z-20">
-              <button onClick={() => setActiveModal(null)} className="px-6 py-3 rounded-xl font-bold text-slate-600 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
-                취소
-              </button>
-              <button 
-                onClick={() => {
-                  alert('데이터가 블록체인에 등재 및 암호화 업로드되었습니다!');
-                  setActiveModal(null);
-                }}
-                className="px-8 py-3 rounded-xl font-black text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all"
-              >
-                데이터 등록
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 6. 스튜디오 스케줄 모달 */}
-      {activeModal === 'schedule' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in" onClick={() => setActiveModal(null)}>
-          <div className="bg-white dark:bg-[#111115] rounded-[2rem] w-full max-w-xl p-8 shadow-[0_30px_60px_rgba(0,0,0,0.4)] border border-slate-200 dark:border-white/10" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-black text-slate-900 dark:text-white">📅 스튜디오 스케줄 현황</h2>
-              <button onClick={() => setActiveModal(null)} className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center font-bold">✕</button>
-            </div>
-            
-            <div className="bg-slate-50 dark:bg-black/30 rounded-2xl p-6 border border-slate-200 dark:border-white/5 mb-6">
-              <div className="flex justify-between items-center mb-4 border-b border-slate-200 dark:border-white/10 pb-4">
-                <span className="font-bold text-slate-700 dark:text-gray-300">판교 랩스 (OptiTrack 24대)</span>
-                <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 font-bold rounded">여유 (2석)</span>
-              </div>
-              <div className="flex justify-between items-center mb-4 border-b border-slate-200 dark:border-white/10 pb-4">
-                <span className="font-bold text-slate-700 dark:text-gray-300">성수 랩스 (Xsens 8벌)</span>
-                <span className="text-xs px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-bold rounded">예약 마감</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-bold text-slate-700 dark:text-gray-300">대전 R&D 센터 (Vicon 16대)</span>
-                <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold rounded">여유 (5석)</span>
-              </div>
-            </div>
-            
-            <button className="w-full py-4 rounded-xl font-black text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg transition-all" onClick={() => setActiveModal(null)}>
-              예약 상담 신청하기
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* 7. 장비 대여 안내 모달 */}
-      {activeModal === 'rental' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in" onClick={() => setActiveModal(null)}>
-          <div className="bg-white dark:bg-[#111115] rounded-[2rem] w-full max-w-xl p-8 shadow-[0_30px_60px_rgba(0,0,0,0.4)] border border-slate-200 dark:border-white/10" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-black text-slate-900 dark:text-white">🦾 장비 대여 안내</h2>
-              <button onClick={() => setActiveModal(null)} className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center font-bold">✕</button>
-            </div>
-            
-            <p className="text-slate-500 dark:text-gray-400 text-sm font-medium mb-6">
-              외부 스튜디오나 자가 환경에서 궤적 데이터를 추출하기 위한 전문 하드웨어를 저렴한 비용에 대여해 드립니다.
-            </p>
-
-            <div className="space-y-4 mb-8">
-              <div className="p-4 rounded-xl bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/5 flex justify-between items-center">
-                <div>
-                  <h4 className="font-bold text-slate-900 dark:text-white">Xsens Awinda 스타터 킷</h4>
-                  <p className="text-xs text-slate-500">관성식 모션 캡처 수트 (최대 6시간/일 연속 동작)</p>
-                </div>
-                <div className="text-right">
-                  <div className="font-extrabold text-indigo-600 dark:text-indigo-400">450 KNT</div>
-                  <div className="text-[10px] text-slate-400">/ 1일</div>
-                </div>
-              </div>
-              <div className="p-4 rounded-xl bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/5 flex justify-between items-center">
-                <div>
-                  <h4 className="font-bold text-slate-900 dark:text-white">OptiTrack Flex 13 패키지</h4>
-                  <p className="text-xs text-slate-500">광학식 카메라 8대 + 마커 세트 (실내 공간 필수)</p>
-                </div>
-                <div className="text-right">
-                  <div className="font-extrabold text-indigo-600 dark:text-indigo-400">1,200 KNT</div>
-                  <div className="text-[10px] text-slate-400">/ 1일</div>
-                </div>
-              </div>
-            </div>
-            
-            <button className="w-full py-4 rounded-xl font-black text-white bg-slate-900 dark:bg-white dark:text-slate-900 hover:shadow-lg transition-all" onClick={() => setActiveModal(null)}>
-              장비 대여 신청서 작성
-            </button>
-          </div>
-        </div>
-      )}
+      {/* SaaS 통합 모달 아키텍처 렌더링 */}
+      <UploadModal 
+        isOpen={activeModal === 'upload'} 
+        onClose={() => setActiveModal(null)} 
+      />
+      <ScheduleModal 
+        isOpen={activeModal === 'schedule'} 
+        onClose={() => setActiveModal(null)} 
+      />
+      <RentalModal 
+        isOpen={activeModal === 'rental'} 
+        onClose={() => setActiveModal(null)} 
+      />
       
     </div>
   );
