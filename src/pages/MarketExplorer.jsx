@@ -152,8 +152,53 @@ export default function MarketExplorer({ role, onNavigate }) {
           </div>
         </aside>
 
-        {/* 2. 메인 그리드 뷰 (Grid) */}
+        {/* 2. 메인 뷰 (Grid & Cards) */}
         <main className="flex-1">
+          
+          {/* 수요자(Consumer) 전용 과거 대시보드 카드 UI 복원 */}
+          {role === 'consumer' && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 mb-10">
+              {/* 전체 자산 개요 */}
+              <div className="bento-card p-10 md:p-14 col-span-1 flex flex-col justify-between bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/[0.05] rounded-[2.5rem] shadow-sm">
+                <div>
+                  <h3 className="text-slate-500 dark:text-gray-400 text-sm font-bold tracking-widest uppercase mb-3 transition-colors">총 등록 자산</h3>
+                  <p className="text-6xl font-extrabold tracking-tighter text-slate-900 dark:text-white transition-colors">12,482</p>
+                </div>
+                <div className="mt-16">
+                  <h3 className="text-slate-500 dark:text-gray-400 text-sm font-bold tracking-widest uppercase mb-3 transition-colors">24시간 거래량 (KNT)</h3>
+                  <div className="flex items-baseline gap-3">
+                    <p className="text-4xl font-extrabold tracking-tighter text-green-600 dark:text-green-400 transition-colors">2.4M</p>
+                    <span className="text-sm font-bold text-green-700 dark:text-green-400/80 bg-green-100 dark:bg-green-400/10 px-3 py-1 rounded-full border border-green-200 dark:border-green-400/20 transition-colors">+14.2%</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 추상화 모션 데이터 스트림 와이어프레임 */}
+              <div className="bento-card p-0 col-span-1 md:col-span-2 relative h-[380px] overflow-hidden flex items-center justify-center bg-slate-50 dark:bg-[#0a0a0c] border border-slate-200 dark:border-white/[0.05] rounded-[2.5rem]">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/20 dark:from-black/40 to-transparent z-0 transition-colors duration-500"></div>
+                <div className="absolute inset-0 wireframe-grid opacity-40 dark:opacity-40 z-0"></div>
+                
+                <div className="relative w-64 h-64 animate-wireframe-spin z-10">
+                  <div className="absolute top-0 left-1/2 w-5 h-5 bg-indigo-500 rounded-full data-node -translate-x-1/2 -translate-y-1/2 shadow-[0_0_20px_rgba(99,102,241,0.6)]"></div>
+                  <div className="absolute bottom-0 left-1/2 w-4 h-4 bg-purple-500 rounded-full data-node -translate-x-1/2 translate-y-1/2 shadow-[0_0_15px_rgba(168,85,247,0.6)]"></div>
+                  <div className="absolute top-1/2 left-0 w-4 h-4 bg-cyan-400 rounded-full data-node -translate-x-1/2 -translate-y-1/2 shadow-[0_0_15px_rgba(34,211,238,0.6)]"></div>
+                  <div className="absolute top-1/2 right-0 w-6 h-6 bg-blue-400 rounded-full data-node translate-x-1/2 -translate-y-1/2 shadow-[0_0_25px_rgba(96,165,250,0.6)]"></div>
+                  
+                  <div className="absolute top-0 left-1/2 h-full w-[2px] bg-gradient-to-b from-indigo-500 via-transparent to-purple-500 opacity-60"></div>
+                  <div className="absolute top-1/2 left-0 w-full h-[2px] bg-gradient-to-r from-cyan-400 via-transparent to-blue-400 opacity-60"></div>
+                  
+                  <div className="absolute top-1/2 left-1/2 w-32 h-32 border border-slate-300 dark:border-white/[0.15] rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+                  <div className="absolute top-1/2 left-1/2 w-44 h-44 border border-slate-200 dark:border-white/[0.05] rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+                </div>
+                
+                <div className="absolute bottom-8 left-10 flex items-center gap-3 z-20 bg-white/60 dark:bg-black/50 px-4 py-2 rounded-full backdrop-blur-md border border-slate-200 dark:border-white/10">
+                  <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+                  <p className="text-xs text-slate-600 dark:text-gray-300 font-bold tracking-widest font-mono">실시간 데이터 스트림 :: 동기화 완료</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {filteredAssets.length === 0 ? (
             <div className="flex flex-col items-center justify-center min-h-[40vh] text-center bg-white/50 dark:bg-white/[0.02] rounded-3xl border border-slate-200 dark:border-white/[0.05]">
               <span className="text-5xl mb-4 block opacity-50">🔍</span>
