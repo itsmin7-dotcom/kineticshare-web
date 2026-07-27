@@ -26,7 +26,7 @@ export default function MarketExplorer({ role, onNavigate }) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [activeModal, setActiveModal] = useState(null); // 'upload' | 'schedule' | 'rental' | null
 
   // 모바일 팝업 시 배경 스크롤 방지
   useEffect(() => {
@@ -210,7 +210,7 @@ export default function MarketExplorer({ role, onNavigate }) {
             <div className="mb-12">
               <div className="flex justify-end mb-10">
                 <button 
-                  onClick={() => setIsUploadOpen(true)}
+                  onClick={() => setActiveModal('upload')}
                   className="px-10 py-5 rounded-full bg-gradient-to-r from-primary via-indigo-500 to-purple-600 text-white font-black text-lg shadow-[0_10px_30px_rgba(99,102,241,0.4)] hover:shadow-[0_15px_40px_rgba(99,102,241,0.6)] hover:-translate-y-1.5 transition-all duration-300 flex items-center gap-4 relative overflow-hidden group"
                 >
                   <div className="absolute inset-0 bg-white/20 -skew-x-12 -translate-x-full group-hover:animate-shimmer"></div>
@@ -337,10 +337,16 @@ export default function MarketExplorer({ role, onNavigate }) {
                   </p>
                   
                   <div className="flex gap-4">
-                    <button className="px-6 py-3 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold hover:shadow-lg transition-shadow">
+                    <button 
+                      onClick={() => setActiveModal('schedule')}
+                      className="px-6 py-3 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold hover:shadow-lg transition-shadow"
+                    >
                       스튜디오 스케줄 확인
                     </button>
-                    <button className="px-6 py-3 rounded-full bg-slate-200/50 dark:bg-white/10 text-slate-700 dark:text-white font-bold hover:bg-slate-300/50 dark:hover:bg-white/20 transition-colors">
+                    <button 
+                      onClick={() => setActiveModal('rental')}
+                      className="px-6 py-3 rounded-full bg-slate-200/50 dark:bg-white/10 text-slate-700 dark:text-white font-bold hover:bg-slate-300/50 dark:hover:bg-white/20 transition-colors"
+                    >
                       장비 대여 안내
                     </button>
                   </div>
@@ -364,20 +370,22 @@ export default function MarketExplorer({ role, onNavigate }) {
         </main>
       </div>
 
-      {/* 3. 모바일 전용 플로팅 필터 버튼 (FAB) */}
-      <div className="lg:hidden fixed bottom-6 right-6 z-40">
-        <button 
-          onClick={() => setIsMobileFilterOpen(true)}
-          className="w-14 h-14 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-[0_10px_20px_rgba(79,70,229,0.4)] hover:bg-indigo-700 hover:scale-105 transition-all"
-        >
-          <span className="text-2xl">⚡</span>
-        </button>
-      </div>
+      {/* 3. 모바일 전용 플로팅 필터 버튼 (FAB) - 수요자 뷰 전용 */}
+      {role === 'consumer' && (
+        <div className="lg:hidden fixed bottom-6 right-6 z-40">
+          <button 
+            onClick={() => setIsMobileFilterOpen(true)}
+            className="w-14 h-14 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-[0_10px_20px_rgba(79,70,229,0.4)] hover:bg-indigo-700 hover:scale-105 transition-all"
+          >
+            <span className="text-2xl">⚡</span>
+          </button>
+        </div>
+      )}
 
-      {/* 4. 모바일 필터 팝업 (Drawer / Bottom Sheet) */}
-      {isMobileFilterOpen && (
+      {/* 4. 모바일 필터 팝업 (Drawer) - 수요자 뷰 전용 */}
+      {role === 'consumer' && isMobileFilterOpen && (
         <div className="fixed inset-0 z-[100] flex flex-col justify-end lg:hidden">
-          {/* 어두운 배경 (클릭 시 닫힘) */}
+          {/* 어두운 배경 */}
           <div 
             className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"
             onClick={() => setIsMobileFilterOpen(false)}
@@ -412,13 +420,12 @@ export default function MarketExplorer({ role, onNavigate }) {
       )}
       
       {/* 5. 로봇 데이터 업로드 모달 */}
-      {isUploadOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsUploadOpen(false)}></div>
-          <div className="bg-white dark:bg-[#111115] rounded-[2rem] w-full max-w-2xl max-h-[90vh] overflow-y-auto relative z-10 shadow-2xl border border-slate-200 dark:border-white/10 flex flex-col">
+      {activeModal === 'upload' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white dark:bg-[#111115] rounded-[2rem] w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-[0_30px_60px_rgba(0,0,0,0.4)] border border-slate-200 dark:border-white/10 flex flex-col transform transition-transform">
             <div className="sticky top-0 bg-white/80 dark:bg-[#111115]/80 backdrop-blur-md px-8 py-6 border-b border-slate-200 dark:border-white/5 flex items-center justify-between z-20">
               <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">새 궤적 데이터 업로드</h2>
-              <button onClick={() => setIsUploadOpen(false)} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">
+              <button onClick={() => setActiveModal(null)} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">
                 <span className="text-slate-500 dark:text-white font-bold">✕</span>
               </button>
             </div>
@@ -480,19 +487,93 @@ export default function MarketExplorer({ role, onNavigate }) {
             </div>
 
             <div className="sticky bottom-0 bg-white dark:bg-[#111115] border-t border-slate-200 dark:border-white/5 p-6 flex justify-end gap-3 z-20">
-              <button onClick={() => setIsUploadOpen(false)} className="px-6 py-3 rounded-xl font-bold text-slate-600 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
+              <button onClick={() => setActiveModal(null)} className="px-6 py-3 rounded-xl font-bold text-slate-600 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
                 취소
               </button>
               <button 
                 onClick={() => {
                   alert('데이터가 블록체인에 등재 및 암호화 업로드되었습니다!');
-                  setIsUploadOpen(false);
+                  setActiveModal(null);
                 }}
                 className="px-8 py-3 rounded-xl font-black text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all"
               >
                 데이터 등록
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 6. 스튜디오 스케줄 모달 */}
+      {activeModal === 'schedule' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in" onClick={() => setActiveModal(null)}>
+          <div className="bg-white dark:bg-[#111115] rounded-[2rem] w-full max-w-xl p-8 shadow-[0_30px_60px_rgba(0,0,0,0.4)] border border-slate-200 dark:border-white/10" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white">📅 스튜디오 스케줄 현황</h2>
+              <button onClick={() => setActiveModal(null)} className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center font-bold">✕</button>
+            </div>
+            
+            <div className="bg-slate-50 dark:bg-black/30 rounded-2xl p-6 border border-slate-200 dark:border-white/5 mb-6">
+              <div className="flex justify-between items-center mb-4 border-b border-slate-200 dark:border-white/10 pb-4">
+                <span className="font-bold text-slate-700 dark:text-gray-300">판교 랩스 (OptiTrack 24대)</span>
+                <span className="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 font-bold rounded">여유 (2석)</span>
+              </div>
+              <div className="flex justify-between items-center mb-4 border-b border-slate-200 dark:border-white/10 pb-4">
+                <span className="font-bold text-slate-700 dark:text-gray-300">성수 랩스 (Xsens 8벌)</span>
+                <span className="text-xs px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 font-bold rounded">예약 마감</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-slate-700 dark:text-gray-300">대전 R&D 센터 (Vicon 16대)</span>
+                <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold rounded">여유 (5석)</span>
+              </div>
+            </div>
+            
+            <button className="w-full py-4 rounded-xl font-black text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg transition-all" onClick={() => setActiveModal(null)}>
+              예약 상담 신청하기
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 7. 장비 대여 안내 모달 */}
+      {activeModal === 'rental' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-fade-in" onClick={() => setActiveModal(null)}>
+          <div className="bg-white dark:bg-[#111115] rounded-[2rem] w-full max-w-xl p-8 shadow-[0_30px_60px_rgba(0,0,0,0.4)] border border-slate-200 dark:border-white/10" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white">🦾 장비 대여 안내</h2>
+              <button onClick={() => setActiveModal(null)} className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center font-bold">✕</button>
+            </div>
+            
+            <p className="text-slate-500 dark:text-gray-400 text-sm font-medium mb-6">
+              외부 스튜디오나 자가 환경에서 궤적 데이터를 추출하기 위한 전문 하드웨어를 저렴한 비용에 대여해 드립니다.
+            </p>
+
+            <div className="space-y-4 mb-8">
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/5 flex justify-between items-center">
+                <div>
+                  <h4 className="font-bold text-slate-900 dark:text-white">Xsens Awinda 스타터 킷</h4>
+                  <p className="text-xs text-slate-500">관성식 모션 캡처 수트 (최대 6시간/일 연속 동작)</p>
+                </div>
+                <div className="text-right">
+                  <div className="font-extrabold text-indigo-600 dark:text-indigo-400">450 KNT</div>
+                  <div className="text-[10px] text-slate-400">/ 1일</div>
+                </div>
+              </div>
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/5 flex justify-between items-center">
+                <div>
+                  <h4 className="font-bold text-slate-900 dark:text-white">OptiTrack Flex 13 패키지</h4>
+                  <p className="text-xs text-slate-500">광학식 카메라 8대 + 마커 세트 (실내 공간 필수)</p>
+                </div>
+                <div className="text-right">
+                  <div className="font-extrabold text-indigo-600 dark:text-indigo-400">1,200 KNT</div>
+                  <div className="text-[10px] text-slate-400">/ 1일</div>
+                </div>
+              </div>
+            </div>
+            
+            <button className="w-full py-4 rounded-xl font-black text-white bg-slate-900 dark:bg-white dark:text-slate-900 hover:shadow-lg transition-all" onClick={() => setActiveModal(null)}>
+              장비 대여 신청서 작성
+            </button>
           </div>
         </div>
       )}
