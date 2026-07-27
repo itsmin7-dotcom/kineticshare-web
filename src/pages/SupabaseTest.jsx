@@ -10,7 +10,6 @@ export default function SupabaseTest({ onBack }) {
   // 새 글 폼 상태
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [author, setAuthor] = useState('Dev Tester');
 
   // 데이터 로드
   const fetchPosts = async () => {
@@ -44,7 +43,7 @@ export default function SupabaseTest({ onBack }) {
     const { data, error } = await supabase
       .from('posts')
       .insert([
-        { title, content, author }
+        { title, content }
       ])
       .select();
 
@@ -105,16 +104,6 @@ export default function SupabaseTest({ onBack }) {
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">작성자</label>
-              <input 
-                type="text" 
-                value={author}
-                onChange={e => setAuthor(e.target.value)}
-                required
-                className="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:border-green-500 outline-none transition-colors"
-              />
-            </div>
-            <div>
               <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">본문 내용</label>
               <textarea 
                 value={content}
@@ -165,11 +154,7 @@ export default function SupabaseTest({ onBack }) {
                       {new Date(post.created_at).toLocaleString()}
                     </span>
                   </div>
-                  <p className="text-sm text-slate-600 dark:text-gray-400 mb-4 whitespace-pre-wrap">{post.content}</p>
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-slate-200 dark:bg-white/10 rounded-full flex items-center justify-center text-xs">👤</div>
-                    <span className="text-xs font-bold text-slate-500">{post.author}</span>
-                  </div>
+                  <p className="text-sm text-slate-600 dark:text-gray-400 mb-2 whitespace-pre-wrap">{post.content}</p>
                 </div>
               ))}
             </div>
