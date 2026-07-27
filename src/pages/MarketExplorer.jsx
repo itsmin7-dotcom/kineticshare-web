@@ -149,14 +149,16 @@ export default function MarketExplorer({ role, onNavigate }) {
       <div className="flex flex-col lg:flex-row gap-8 relative">
         
         {/* 1. 데스크톱 좌측 LNB (Sticky) */}
-        <aside className="hidden lg:block w-72 flex-shrink-0 sticky top-32 h-[calc(100vh-10rem)] overflow-y-auto hide-scrollbar">
-          <div className="bg-white/70 dark:bg-[#0a0a0c]/80 backdrop-blur-3xl rounded-[2rem] border border-slate-200 dark:border-white/[0.05] p-8 shadow-[0_20px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
-            <FilterSidebarContent />
-          </div>
-        </aside>
+        {role === 'consumer' && (
+          <aside className="hidden lg:block w-72 flex-shrink-0 sticky top-32 h-[calc(100vh-10rem)] overflow-y-auto hide-scrollbar">
+            <div className="bg-white/70 dark:bg-[#0a0a0c]/80 backdrop-blur-3xl rounded-[2rem] border border-slate-200 dark:border-white/[0.05] p-8 shadow-[0_20px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
+              <FilterSidebarContent />
+            </div>
+          </aside>
+        )}
 
         {/* 2. 메인 뷰 (Grid & Cards) */}
-        <main className="flex-1">
+        <main className={role === 'consumer' ? "flex-1 min-w-0" : "w-full"}>
           
           {/* 수요자(Consumer) 전용 과거 대시보드 카드 UI 복원 */}
           {role === 'consumer' && (
@@ -251,51 +253,60 @@ export default function MarketExplorer({ role, onNavigate }) {
               <p className="text-slate-500 mt-2">필터를 해제하거나 다른 카테고리를 선택해 보세요.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className={`grid grid-cols-1 sm:grid-cols-2 ${role === 'consumer' ? 'xl:grid-cols-3' : 'xl:grid-cols-4'} gap-6`}>
               {displayAssets.map(asset => (
                 <div 
                   key={asset.id}
                   onClick={() => navigate(`/asset/${asset.id}`)}
-                  className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/[0.05] rounded-3xl p-6 group hover:border-indigo-500/50 hover:shadow-2xl transition-all cursor-pointer flex flex-col"
+                  className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/[0.05] rounded-3xl group hover:border-indigo-500/50 hover:shadow-2xl transition-all cursor-pointer flex flex-col overflow-hidden relative"
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
-                    🤖
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-tight">
-                    {asset.name}
-                  </h3>
+                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   
-                  {/* 추가된 메타데이터 칩(Badge) 영역 */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <span className="text-[10px] font-black tracking-wider px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-md border border-blue-200 dark:border-blue-800/50 shadow-sm">
-                      DoF: {asset.dof}
-                    </span>
-                    <span className="text-[10px] font-black tracking-wider px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-md border border-purple-200 dark:border-purple-800/50 shadow-sm">
-                      Hz: {asset.hz}
-                    </span>
-                    <span className="text-[10px] font-black tracking-wider px-2 py-1 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-gray-300 rounded-md border border-slate-200 dark:border-white/20 uppercase shadow-sm">
-                      {asset.env}
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 flex-1 line-clamp-2 leading-relaxed font-medium">
-                    {asset.description}
-                  </p>
-                  
-                  <div className="flex items-center justify-between border-t border-slate-100 dark:border-white/5 pt-4">
-                    <div className="flex items-center gap-1 font-mono text-sm font-bold text-slate-900 dark:text-green-400">
-                      <span>{asset.price}</span>
-                      <span className="text-[10px] text-slate-400">KNT</span>
+                  <div className="p-6 flex flex-col flex-1 relative z-10">
+                    <div className="flex justify-between items-start mb-4">
+                      <span className="text-[11px] font-bold px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-full border border-indigo-200 dark:border-indigo-800/50">
+                        {asset.category}
+                      </span>
+                      <span className="text-[11px] font-bold text-slate-400">ID: {asset.id}</span>
                     </div>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/asset/${asset.id}`);
-                      }}
-                      className="text-xs font-bold px-4 py-2 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 hover:bg-indigo-600 hover:text-white transition-colors"
-                    >
-                      {role === 'provider' ? '관리 / 수정' : '구매'}
-                    </button>
+                    
+                    <div className="flex-1 flex flex-col">
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-tight">
+                        {asset.name}
+                      </h3>
+                      
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 line-clamp-2 leading-relaxed font-medium min-h-[2rem]">
+                        {asset.description}
+                      </p>
+
+                      <div className="flex flex-wrap gap-2 mb-auto">
+                        <span className="text-[10px] font-black tracking-wider px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-md border border-blue-200 dark:border-blue-800/50 shadow-sm">
+                          DoF: {asset.dof}
+                        </span>
+                        <span className="text-[10px] font-black tracking-wider px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-md border border-purple-200 dark:border-purple-800/50 shadow-sm">
+                          Hz: {asset.hz}
+                        </span>
+                        <span className="text-[10px] font-black tracking-wider px-2 py-1 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-gray-300 rounded-md border border-slate-200 dark:border-white/20 uppercase shadow-sm">
+                          {asset.env}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="pt-4 mt-5 border-t border-slate-100 dark:border-white/[0.05] flex items-center justify-between">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">토큰 가격</span>
+                        <span className="font-extrabold text-green-600 dark:text-green-400 text-lg leading-none">{asset.price.toLocaleString()} <span className="text-xs">KNT</span></span>
+                      </div>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/asset/${asset.id}`);
+                        }}
+                        className="text-xs font-bold px-4 py-2.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                      >
+                        {role === 'provider' ? '관리 / 수정' : '구매'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
