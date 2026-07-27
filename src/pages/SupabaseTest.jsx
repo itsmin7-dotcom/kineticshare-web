@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../utils/supabase/client';
 
-export default function SupabaseTest({ onBack }) {
+export default function SupabaseTest({ onBack, session, onOpenAuth }) {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -17,7 +17,7 @@ export default function SupabaseTest({ onBack }) {
     setErrorMsg('');
     const { data, error } = await supabase
       .from('posts')
-      .select('*')
+      .select('*, profiles(username)')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -37,15 +37,20 @@ export default function SupabaseTest({ onBack }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title || !content) return;
+    if (!session) {
+      setErrorMsg('로그인이 필요합니다.');
+      return;
+    }
+    
     setIsSubmitting(true);
     setErrorMsg('');
 
     const { data, error } = await supabase
       .from('posts')
       .insert([
-        { title, content }
+        { title, content, author_id: session.user.id }
       ])
-      .select();
+      .select('*, profiles(username)');
 
     if (error) {
       console.error('Error inserting post:', error);
@@ -91,37 +96,51 @@ export default function SupabaseTest({ onBack }) {
         {/* 좌측: 새 글 작성 폼 벤토 카드 */}
         <div className="lg:col-span-1 bg-white/70 dark:bg-[#0a0a0c]/80 backdrop-blur-2xl rounded-[2rem] p-8 border border-slate-200 dark:border-white/[0.05] shadow-[0_20px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_20px_40px_rgba(0,0,0,0.5)] h-fit sticky top-24">
           <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">새 글 작성</h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">제목</label>
-              <input 
-                type="text" 
-                value={title}
-                onChange={e => setTitle(e.target.value)}
-                required
-                className="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:border-green-500 outline-none transition-colors"
-                placeholder="예: 첫 번째 테스트 글"
-              />
+          
+          {!session ? (
+            <div className="bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-2xl p-8 text-center flex flex-col items-center justify-center">
+              <span className="text-4xl mb-4">🔒</span>
+              <p className="text-sm text-slate-500 font-medium mb-6">게시글을 작성하려면 로그인이 필요합니다.</p>
+              <button 
+                onClick={onOpenAuth}
+                className="px-6 py-3 rounded-full bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors shadow-lg"
+              >
+                로그인 및 가입하기
+              </button>
             </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">본문 내용</label>
-              <textarea 
-                value={content}
-                onChange={e => setContent(e.target.value)}
-                required
-                rows="5"
-                className="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:border-green-500 outline-none transition-colors resize-none"
-                placeholder="내용을 입력하세요..."
-              ></textarea>
-            </div>
-            <button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="w-full py-4 rounded-xl bg-green-500 text-white font-extrabold text-sm hover:bg-green-600 transition-all shadow-[0_10px_20px_rgba(34,197,94,0.3)] disabled:opacity-50"
-            >
-              {isSubmitting ? '데이터베이스 기록 중...' : '게시글 등록하기 (Insert)'}
-            </button>
-          </form>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">제목</label>
+                <input 
+                  type="text" 
+                  value={title}
+                  onChange={e => setTitle(e.target.value)}
+                  required
+                  className="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:border-green-500 outline-none transition-colors"
+                  placeholder="예: 첫 번째 테스트 글"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">본문 내용</label>
+                <textarea 
+                  value={content}
+                  onChange={e => setContent(e.target.value)}
+                  required
+                  rows="5"
+                  className="w-full bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-slate-900 dark:text-white focus:border-green-500 outline-none transition-colors resize-none"
+                  placeholder="내용을 입력하세요..."
+                ></textarea>
+              </div>
+              <button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="w-full py-4 rounded-xl bg-green-500 text-white font-extrabold text-sm hover:bg-green-600 transition-all shadow-[0_10px_20px_rgba(34,197,94,0.3)] disabled:opacity-50"
+              >
+                {isSubmitting ? '데이터베이스 기록 중...' : '게시글 등록하기 (Insert)'}
+              </button>
+            </form>
+          )}
         </div>
 
         {/* 우측: 게시글 목록 벤토 그리드 */}
@@ -154,7 +173,11 @@ export default function SupabaseTest({ onBack }) {
                       {new Date(post.created_at).toLocaleString()}
                     </span>
                   </div>
-                  <p className="text-sm text-slate-600 dark:text-gray-400 mb-2 whitespace-pre-wrap">{post.content}</p>
+                  <p className="text-sm text-slate-600 dark:text-gray-400 mb-4 whitespace-pre-wrap">{post.content}</p>
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-slate-200 dark:bg-white/10 rounded-full flex items-center justify-center text-xs">👤</div>
+                    <span className="text-xs font-bold text-slate-500">{post.profiles?.username || '알 수 없는 유저'}</span>
+                  </div>
                 </div>
               ))}
             </div>

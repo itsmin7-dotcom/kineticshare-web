@@ -5,6 +5,8 @@ import DeveloperCenter from './pages/DeveloperCenter'
 import ValidatorDashboard from './pages/ValidatorDashboard'
 import BountyBoard from './pages/BountyBoard'
 import SupabaseTest from './pages/SupabaseTest'
+import AuthModal from './components/AuthModal'
+import { supabase } from './utils/supabase/client'
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -16,6 +18,24 @@ function App() {
 
   // 공급자 / 수요자 모드 전환 상태
   const [userRole, setUserRole] = useState('provider'); // 'provider' | 'buyer' | 'validator'
+  
+  // 글로벌 인증(Session) 상태
+  const [session, setSession] = useState(null);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+
+  useEffect(() => {
+    // 초기 세션 획득
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    // 세션 변경 구독
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleRoleChange = (role) => {
     setUserRole(role);
@@ -130,14 +150,32 @@ function App() {
               </button>
             </div>
 
-            {/* 라이트/다크 테마 토글 버튼 */}
-            <button 
-              onClick={() => setIsDarkMode(!isDarkMode)}
-              className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-100 dark:bg-white/[0.05] hover:bg-slate-200 dark:hover:bg-white/[0.1] transition-colors border border-slate-200 dark:border-white/[0.05]"
-              aria-label="Toggle Dark Mode"
-            >
-              {isDarkMode ? '🌙' : '☀️'}
-            </button>
+            {/* 라이트/다크 테마 토글 버튼 & 로그인(Auth) 버튼 */}
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-gray-400 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-white/10 transition-colors"
+                aria-label="Toggle Theme"
+              >
+                {isDarkMode ? '☀️' : '🌙'}
+              </button>
+              
+              {session ? (
+                <button 
+                  onClick={() => supabase.auth.signOut()}
+                  className="px-4 py-2 text-xs font-bold rounded-full bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-red-500/10 hover:text-red-500 transition-colors"
+                >
+                  로그아웃
+                </button>
+              ) : (
+                <button 
+                  onClick={() => setIsAuthOpen(true)}
+                  className="px-4 py-2 text-xs font-extrabold rounded-full bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/30"
+                >
+                  로그인 / 가입
+                </button>
+              )}
+            </div>
 
             {/* 지갑 연결 버튼 / 팝오버 상태 */}
             {!isWalletConnected ? (
@@ -175,9 +213,11 @@ function App() {
         {currentView === 'assetDetail' && <AssetDetail asset={selectedAsset} onBack={() => navigate('dashboard')} />}
         {currentView === 'developer' && <DeveloperCenter onBack={() => navigate('dashboard')} userRole={userRole} />}
         {currentView === 'bounty' && <BountyBoard userRole={userRole} />}
-        {currentView === 'supabase_test' && <SupabaseTest onBack={() => navigate('dashboard')} />}
+        {currentView === 'supabase_test' && <SupabaseTest onBack={() => navigate('dashboard')} session={session} onOpenAuth={() => setIsAuthOpen(true)} />}
       </main>
 
+      {/* 글로벌 인증 모달 */}
+      {isAuthOpen && <AuthModal onClose={() => setIsAuthOpen(false)} />}
     </div>
   )
 }
