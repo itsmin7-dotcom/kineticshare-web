@@ -24,30 +24,31 @@ export default function AuthModal({ onClose }) {
         onClose(); // 성공 시 모달 닫기
       } else {
         // 회원가입 처리
-        const { data, error: signUpError } = await supabase.auth.signUp({ email, password });
+        const { error: signUpError } = await supabase.auth.signUp({ email, password });
         if (signUpError) throw signUpError;
         
-        if (data?.user) {
-          // 회원가입 성공 시, 프로필 생성 (id: UUID 매칭)
-          const randomSuffix = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-          const username = 'User_' + randomSuffix;
-          
-          const { error: profileError } = await supabase.from('profiles').insert([
-            { id: data.user.id, username }
-          ]);
-          
-          if (profileError) {
-            console.error('Profile Creation Error:', profileError);
-            throw new Error('인증은 완료되었으나, 프로필 생성 중 오류가 발생했습니다.');
-          }
-          onClose(); // 성공 시 모달 닫기
-        }
+        // 프로필 생성은 DB 트리거가 백엔드에서 자동 처리하므로 프론트 로직 삭제
+        onClose(); // 성공 시 모달 닫기
       }
     } catch (err) {
       console.error('Auth Error:', err);
       // 자체 에러 메시지 렌더링
       setErrorMsg(err.message || '알 수 없는 오류가 발생했습니다.');
     } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOAuthLogin = async (provider) => {
+    setLoading(true);
+    setErrorMsg('');
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({ provider });
+      if (error) throw error;
+      // 외부 프로바이더 창으로 리다이렉트됨
+    } catch (err) {
+      console.error('OAuth Error:', err);
+      setErrorMsg(err.message || '소셜 로그인 중 오류가 발생했습니다.');
       setLoading(false);
     }
   };
@@ -87,6 +88,31 @@ export default function AuthModal({ onClose }) {
           </div>
         )}
 
+        {/* 소셜 로그인 (OAuth) 버튼 구역 */}
+        <div className="space-y-3 mb-6">
+          <button 
+            onClick={() => handleOAuthLogin('google')}
+            disabled={loading}
+            className="w-full py-3.5 rounded-xl bg-white dark:bg-[#111] border border-slate-200 dark:border-white/10 flex items-center justify-center gap-3 text-slate-700 dark:text-slate-300 font-bold text-sm hover:bg-slate-50 dark:hover:bg-white/5 transition-colors shadow-sm disabled:opacity-50"
+          >
+            <span className="text-lg">G</span> Google 계정으로 {isLoginMode ? '로그인' : '가입하기'}
+          </button>
+          
+          <button 
+            onClick={() => handleOAuthLogin('kakao')}
+            disabled={loading}
+            className="w-full py-3.5 rounded-xl bg-[#FEE500] text-black/80 flex items-center justify-center gap-3 font-bold text-sm hover:bg-[#FEE500]/90 transition-colors shadow-sm disabled:opacity-50"
+          >
+            <span className="text-lg font-black">K</span> 카카오 계정으로 {isLoginMode ? '로그인' : '가입하기'}
+          </button>
+        </div>
+
+        <div className="relative flex items-center py-2 mb-6">
+          <div className="flex-grow border-t border-slate-200 dark:border-white/10"></div>
+          <span className="flex-shrink-0 mx-4 text-xs font-bold text-slate-400 uppercase tracking-wider">or email</span>
+          <div className="flex-grow border-t border-slate-200 dark:border-white/10"></div>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">이메일 계정</label>
@@ -117,7 +143,7 @@ export default function AuthModal({ onClose }) {
             disabled={loading}
             className="w-full mt-2 py-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-sm transition-all shadow-lg disabled:opacity-50"
           >
-            {loading ? '인증 처리 중...' : isLoginMode ? '로그인 (Sign In)' : '회원가입 및 프로필 생성'}
+            {loading ? '인증 처리 중...' : isLoginMode ? '로그인 (Sign In)' : '이메일로 가입하기'}
           </button>
         </form>
 
