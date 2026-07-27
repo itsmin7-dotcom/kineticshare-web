@@ -4,6 +4,7 @@ import AssetDetail from './pages/AssetDetail'
 import DeveloperCenter from './pages/DeveloperCenter'
 import ValidatorDashboard from './pages/ValidatorDashboard'
 import BountyBoard from './pages/BountyBoard'
+import SupabaseTest from './pages/SupabaseTest'
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -121,6 +122,12 @@ function App() {
               >
                 개발자 센터
               </button>
+              <button 
+                onClick={() => navigate('supabase_test')}
+                className={`text-sm font-extrabold transition-colors flex items-center gap-1 ${currentView === 'supabase_test' ? 'text-green-500' : 'text-slate-500 hover:text-green-600 dark:text-gray-400 dark:hover:text-green-400'}`}
+              >
+                🛠️ DB 테스트
+              </button>
             </div>
 
             {/* 라이트/다크 테마 토글 버튼 */}
@@ -168,6 +175,7 @@ function App() {
         {currentView === 'assetDetail' && <AssetDetail asset={selectedAsset} onBack={() => navigate('dashboard')} />}
         {currentView === 'developer' && <DeveloperCenter onBack={() => navigate('dashboard')} userRole={userRole} />}
         {currentView === 'bounty' && <BountyBoard userRole={userRole} />}
+        {currentView === 'supabase_test' && <SupabaseTest onBack={() => navigate('dashboard')} />}
       </main>
 
     </div>
