@@ -20,7 +20,7 @@ function App() {
   const [isWalletConnected, setIsWalletConnected] = useState(false);
 
   // 공급자 / 수요자 모드 전환 상태
-  const [userRole, setUserRole] = useState('provider'); // 'provider' | 'buyer' | 'validator'
+  const [userRole, setUserRole] = useState('provider'); // 'provider' | 'consumer' | 'validator'
   
   // 글로벌 인증(Session) 상태
   const [session, setSession] = useState(null);
@@ -103,7 +103,7 @@ function App() {
               <div 
                 className={`absolute top-1 bottom-1 w-[calc(33.33%-2px)] bg-white dark:bg-white/10 rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] dark:shadow-[0_2px_15px_rgba(255,255,255,0.1)] transition-all duration-300 ease-in-out ${
                   userRole === 'provider' ? 'left-1' : 
-                  userRole === 'buyer' ? 'left-[calc(33.33%+1px)]' : 
+                  userRole === 'consumer' ? 'left-[calc(33.33%+1px)]' : 
                   'left-[calc(66.66%+1px)]'
                 }`}
               ></div>
@@ -115,8 +115,8 @@ function App() {
                 공급자
               </button>
               <button 
-                onClick={() => handleRoleChange('buyer')}
-                className={`relative flex-1 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-extrabold transition-colors duration-300 z-10 ${userRole === 'buyer' ? 'text-purple-600 dark:text-white' : 'text-slate-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'}`}
+                onClick={() => handleRoleChange('consumer')}
+                className={`relative flex-1 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-extrabold transition-colors duration-300 z-10 ${userRole === 'consumer' ? 'text-purple-600 dark:text-white' : 'text-slate-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200'}`}
               >
                 수요자
               </button>
