@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../utils/supabase/client';
+import PostDetail from './PostDetail';
 
 export default function SupabaseTest({ onBack, session, onOpenAuth }) {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  
+  const [selectedPost, setSelectedPost] = useState(null);
 
   // 새 글 폼 상태
   const [title, setTitle] = useState('');
@@ -67,6 +70,20 @@ export default function SupabaseTest({ onBack, session, onOpenAuth }) {
     }
     setIsSubmitting(false);
   };
+
+  if (selectedPost) {
+    return (
+      <PostDetail 
+        post={selectedPost} 
+        session={session} 
+        onOpenAuth={onOpenAuth} 
+        onBack={() => {
+          setSelectedPost(null);
+          fetchPosts(); // 상세 뷰에서 복귀 시 최신 데이터로 리프레시
+        }} 
+      />
+    );
+  }
 
   return (
     <div className="min-h-[85vh] animate-fade-in relative z-10 flex flex-col gap-8 pb-10">
@@ -166,17 +183,27 @@ export default function SupabaseTest({ onBack, session, onOpenAuth }) {
           ) : (
             <div className="grid grid-cols-1 gap-4">
               {posts.map((post) => (
-                <div key={post.id} className="bg-white dark:bg-[#111115] p-6 rounded-2xl border border-slate-200 dark:border-white/[0.05] shadow-sm hover:border-green-500/50 transition-colors group">
+                <div 
+                  key={post.id} 
+                  onClick={() => setSelectedPost(post)}
+                  className="bg-white dark:bg-[#111115] p-6 rounded-2xl border border-slate-200 dark:border-white/[0.05] shadow-sm hover:border-green-500/50 hover:-translate-y-0.5 transition-all group cursor-pointer"
+                >
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-green-500 transition-colors">{post.title}</h3>
                     <span className="text-xs text-slate-400 font-mono">
                       {new Date(post.created_at).toLocaleString()}
                     </span>
                   </div>
-                  <p className="text-sm text-slate-600 dark:text-gray-400 mb-4 whitespace-pre-wrap">{post.content}</p>
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-slate-200 dark:bg-white/10 rounded-full flex items-center justify-center text-xs">👤</div>
-                    <span className="text-xs font-bold text-slate-500">{post.profiles?.username || '알 수 없는 유저'}</span>
+                  <p className="text-sm text-slate-600 dark:text-gray-400 mb-4 whitespace-pre-wrap line-clamp-2">{post.content}</p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-slate-200 dark:bg-white/10 rounded-full flex items-center justify-center text-xs">👤</div>
+                      <span className="text-xs font-bold text-slate-500">{post.profiles?.username || '알 수 없는 유저'}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs font-bold text-slate-400">
+                      <span>👀 {post.view_count || 0}</span>
+                      <span>❤️ {post.like_count || 0}</span>
+                    </div>
                   </div>
                 </div>
               ))}
