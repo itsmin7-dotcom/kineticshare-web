@@ -26,6 +26,7 @@ export default function MarketExplorer({ role, onNavigate }) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
 
   // 모바일 팝업 시 배경 스크롤 방지
   useEffect(() => {
@@ -208,7 +209,10 @@ export default function MarketExplorer({ role, onNavigate }) {
           {role === 'provider' && (
             <div className="mb-12">
               <div className="flex justify-end mb-10">
-                <button className="px-10 py-5 rounded-full bg-gradient-to-r from-primary via-indigo-500 to-purple-600 text-white font-black text-lg shadow-[0_10px_30px_rgba(99,102,241,0.4)] hover:shadow-[0_15px_40px_rgba(99,102,241,0.6)] hover:-translate-y-1.5 transition-all duration-300 flex items-center gap-4 relative overflow-hidden group">
+                <button 
+                  onClick={() => setIsUploadOpen(true)}
+                  className="px-10 py-5 rounded-full bg-gradient-to-r from-primary via-indigo-500 to-purple-600 text-white font-black text-lg shadow-[0_10px_30px_rgba(99,102,241,0.4)] hover:shadow-[0_15px_40px_rgba(99,102,241,0.6)] hover:-translate-y-1.5 transition-all duration-300 flex items-center gap-4 relative overflow-hidden group"
+                >
                   <div className="absolute inset-0 bg-white/20 -skew-x-12 -translate-x-full group-hover:animate-shimmer"></div>
                   <span className="text-3xl font-normal leading-none relative z-10">+</span> 
                   <span className="relative z-10">새 로봇 궤적 데이터 업로드</span>
@@ -312,6 +316,51 @@ export default function MarketExplorer({ role, onNavigate }) {
               ))}
             </div>
           )}
+
+          {/* 스튜디오 예약 섹션 복원 (Provider 전용) */}
+          {role === 'provider' && (
+            <div className="mt-16 bg-white/50 dark:bg-black/30 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-10 md:p-14 shadow-lg relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[80px] pointer-events-none"></div>
+              
+              <div className="flex flex-col md:flex-row gap-10 items-center justify-between relative z-10">
+                <div className="flex-1">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 font-bold text-xs mb-4">
+                    <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                    제휴 파트너 스튜디오
+                  </div>
+                  <h3 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-4">
+                    모션 캡처 스튜디오 예약
+                  </h3>
+                  <p className="text-slate-500 dark:text-gray-400 font-medium mb-8 leading-relaxed max-w-xl">
+                    고정밀 모션 텐서를 추출하기 위한 전문 장비(OptiTrack, Xsens) 대여 및 촬영 스튜디오 예약 서비스입니다.
+                    전문 엔지니어의 지원을 받아 더 높은 품질의 에셋을 마켓에 상장해 보세요.
+                  </p>
+                  
+                  <div className="flex gap-4">
+                    <button className="px-6 py-3 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold hover:shadow-lg transition-shadow">
+                      스튜디오 스케줄 확인
+                    </button>
+                    <button className="px-6 py-3 rounded-full bg-slate-200/50 dark:bg-white/10 text-slate-700 dark:text-white font-bold hover:bg-slate-300/50 dark:hover:bg-white/20 transition-colors">
+                      장비 대여 안내
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="w-full md:w-1/3 grid grid-cols-2 gap-4">
+                  <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/10 p-6 rounded-3xl text-center shadow-sm">
+                    <div className="text-3xl mb-3">📍</div>
+                    <div className="font-bold text-slate-900 dark:text-white mb-1">판교 랩스</div>
+                    <div className="text-xs text-slate-500">여유 2석</div>
+                  </div>
+                  <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/10 p-6 rounded-3xl text-center shadow-sm">
+                    <div className="text-3xl mb-3">📍</div>
+                    <div className="font-bold text-slate-900 dark:text-white mb-1">성수 랩스</div>
+                    <div className="text-xs text-slate-500">예약 마감</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </div>
 
@@ -356,6 +405,92 @@ export default function MarketExplorer({ role, onNavigate }) {
                 className="w-full py-4 rounded-xl bg-indigo-600 text-white font-black text-sm shadow-lg shadow-indigo-500/30"
               >
                 필터 적용 완료 ({Array.from(searchParams.keys()).length}개 항목)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* 5. 로봇 데이터 업로드 모달 */}
+      {isUploadOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsUploadOpen(false)}></div>
+          <div className="bg-white dark:bg-[#111115] rounded-[2rem] w-full max-w-2xl max-h-[90vh] overflow-y-auto relative z-10 shadow-2xl border border-slate-200 dark:border-white/10 flex flex-col">
+            <div className="sticky top-0 bg-white/80 dark:bg-[#111115]/80 backdrop-blur-md px-8 py-6 border-b border-slate-200 dark:border-white/5 flex items-center justify-between z-20">
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">새 궤적 데이터 업로드</h2>
+              <button onClick={() => setIsUploadOpen(false)} className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-white/10 transition-colors">
+                <span className="text-slate-500 dark:text-white font-bold">✕</span>
+              </button>
+            </div>
+            
+            <div className="p-8 flex flex-col gap-6">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 dark:text-gray-300 mb-2">데이터 자산명</label>
+                <input type="text" placeholder="예: 정밀 바리스타 핸드드립 모션 텐서" className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors" />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-bold text-slate-700 dark:text-gray-300 mb-2">상세 설명</label>
+                <textarea rows="3" placeholder="동작의 특성 및 주의사항을 상세히 적어주세요." className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors resize-none"></textarea>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-gray-300 mb-2">로봇 형태</label>
+                  <select className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 appearance-none font-bold">
+                    <option value="bipedal">2족 보행</option>
+                    <option value="quadruped">4족 보행</option>
+                    <option value="arm">다관절 암</option>
+                    <option value="drone">드론</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-gray-300 mb-2">모션 타입</label>
+                  <select className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 appearance-none font-bold">
+                    <option value="locomotion">이동 (Locomotion)</option>
+                    <option value="grasping">파지 (Grasping)</option>
+                    <option value="simulation">시뮬레이션</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-gray-300 mb-2">제어 환경</label>
+                  <select className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 appearance-none font-bold">
+                    <option value="ros1">ROS 1</option>
+                    <option value="ros2">ROS 2</option>
+                    <option value="pytorch">PyTorch</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 dark:text-gray-300 mb-2">토큰 가격 (KNT)</label>
+                  <input type="number" placeholder="예: 1200" className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-black/50 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors font-bold" />
+                </div>
+              </div>
+
+              {/* 파일 업로드 존 */}
+              <div className="mt-2 border-2 border-dashed border-slate-300 dark:border-white/20 rounded-2xl p-8 flex flex-col items-center justify-center bg-slate-50/50 dark:bg-black/20 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer group">
+                <div className="w-16 h-16 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mb-4 group-hover:scale-110 transition-transform">
+                  <span className="text-2xl">📁</span>
+                </div>
+                <p className="text-sm font-bold text-slate-900 dark:text-white mb-1">궤적 데이터 파일 업로드</p>
+                <p className="text-xs text-slate-500 dark:text-gray-400 font-medium">.bag, .csv, .pt 형식 지원 (최대 5GB)</p>
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-white dark:bg-[#111115] border-t border-slate-200 dark:border-white/5 p-6 flex justify-end gap-3 z-20">
+              <button onClick={() => setIsUploadOpen(false)} className="px-6 py-3 rounded-xl font-bold text-slate-600 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors">
+                취소
+              </button>
+              <button 
+                onClick={() => {
+                  alert('데이터가 블록체인에 등재 및 암호화 업로드되었습니다!');
+                  setIsUploadOpen(false);
+                }}
+                className="px-8 py-3 rounded-xl font-black text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all"
+              >
+                데이터 등록
               </button>
             </div>
           </div>
