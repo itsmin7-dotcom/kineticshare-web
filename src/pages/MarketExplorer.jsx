@@ -20,13 +20,7 @@ const FILTER_CATEGORIES = {
   ]
 };
 
-// 더미 데이터 (디자인 확인용)
-const MOCK_ASSETS = Array(12).fill(null).map((_, i) => ({
-  id: `asset-${i}`,
-  title: `고도화된 로봇 모션 텐서 ${i + 1}`,
-  description: '사이버펑크 환경에서 수집된 고품질 관절 데이터셋입니다.',
-  price: (Math.random() * 500 + 100).toFixed(0),
-}));
+import { mockAssets } from '../data/mockAssets';
 
 export default function MarketExplorer({ role, onNavigate }) {
   const navigate = useNavigate();
@@ -140,7 +134,7 @@ export default function MarketExplorer({ role, onNavigate }) {
         {/* 2. 메인 그리드 뷰 (Grid) */}
         <main className="flex-1">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {MOCK_ASSETS?.map(asset => (
+            {mockAssets?.map(asset => (
               <div 
                 key={asset.id}
                 onClick={() => navigate(`/asset/${asset.id}`)}
@@ -150,7 +144,7 @@ export default function MarketExplorer({ role, onNavigate }) {
                   🤖
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-tight">
-                  {asset.title}
+                  {asset.name}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 flex-1 line-clamp-2 leading-relaxed">
                   {asset.description}

@@ -69,7 +69,6 @@ function App() {
   // 하위 컴포넌트 호환성을 위한 네비게이션 래퍼
   const handleNavigate = (view, asset = null) => {
     if (view === 'dashboard') navigate(`/${userRole}`);
-    else if (view === 'assetDetail') navigate('/asset-detail', { state: { asset } });
     else navigate(`/${view}`);
   };
 
@@ -218,7 +217,7 @@ function App() {
           <Route path="/consumer" element={<MarketExplorer role="consumer" onNavigate={handleNavigate} />} />
           <Route path="/validator" element={<ValidatorDashboard />} />
           
-          <Route path="/asset-detail" element={<AssetDetailWrapper onNavigate={handleNavigate} />} />
+          <Route path="/asset/:id" element={<AssetDetail />} />
           <Route path="/developer" element={<DeveloperCenter onBack={() => navigate('/')} userRole={userRole} />} />
           <Route path="/bounty" element={<BountyBoard userRole={userRole} />} />
           
@@ -232,14 +231,6 @@ function App() {
       {isAuthOpen && <AuthModal onClose={() => setIsAuthOpen(false)} />}
     </div>
   )
-}
-
-// AssetDetail 호환성을 위한 래퍼
-function AssetDetailWrapper({ onNavigate }) {
-  const location = useLocation();
-  const asset = location.state?.asset;
-  if (!asset) return <div>Invalid Asset Data</div>;
-  return <AssetDetail asset={asset} onBack={() => onNavigate('dashboard')} />;
 }
 
 export default App

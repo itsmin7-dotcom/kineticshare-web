@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { mockAssets } from '../data/mockAssets';
 
 // 사이버틱 디코딩 애니메이션 헬퍼 컴포넌트
 const DecodingText = ({ text }) => {
@@ -31,7 +33,12 @@ const DecodingText = ({ text }) => {
   return <span>{displayText}</span>;
 };
 
-export default function AssetDetail({ asset, onBack }) {
+export default function AssetDetail() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  
+  // mockAssets 배열에서 id로 데이터 찾기
+  const asset = mockAssets.find(a => a.id === id);
   const [isPlaying, setIsPlaying] = useState(true);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [time, setTime] = useState(0);
@@ -89,7 +96,21 @@ export default function AssetDetail({ asset, onBack }) {
     }, 1500);
   };
 
-  if (!asset) return null;
+  if (!asset) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 animate-fade-in relative z-10">
+        <span className="text-6xl mb-6">🤖</span>
+        <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">데이터를 찾을 수 없습니다</h2>
+        <p className="text-slate-500 dark:text-gray-400 mb-8">요청하신 에셋 ID ({id}) 에 해당하는 정보가 삭제되었거나 존재하지 않습니다.</p>
+        <button 
+          onClick={() => navigate(-1)}
+          className="px-6 py-3 rounded-full bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-500/30"
+        >
+          이전 화면으로 돌아가기
+        </button>
+      </div>
+    );
+  }
 
   // 수학적 기구학(Kinematics) 기반 궤적 계산
   const f = time * 3; // 기본 진동 주파수
@@ -147,11 +168,11 @@ export default function AssetDetail({ asset, onBack }) {
     <div className="space-y-10 animate-fade-in max-w-6xl mx-auto transition-colors duration-500 pb-20 relative">
       
       <button 
-        onClick={onBack}
+        onClick={() => navigate(-1)}
         className="text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-3 text-sm font-bold tracking-wide transition-all duration-300 mb-6 group hover:bg-slate-100 dark:hover:bg-white/[0.05] w-fit px-4 py-2 rounded-full border border-transparent hover:border-slate-200 dark:hover:border-white/[0.1]"
       >
         <span className="group-hover:-translate-x-1.5 transition-transform duration-300">&larr;</span> 
-        대시보드로 돌아가기
+        마켓으로 돌아가기
       </button>
 
       {/* 키네틱 데이터 프리뷰어 영역 */}
@@ -468,7 +489,7 @@ export default function AssetDetail({ asset, onBack }) {
               <div className="bg-slate-50 dark:bg-white/[0.02] p-6 rounded-3xl border border-slate-200 dark:border-white/[0.05] flex justify-between items-center shadow-sm">
                 <div>
                   <p className="text-xs text-slate-500 dark:text-gray-400 font-bold uppercase tracking-widest mb-2">청구 금액</p>
-                  <p className="text-3xl font-extrabold text-slate-900 dark:text-white">1,420 <span className="text-sm font-bold text-slate-500">KNT</span></p>
+                  <p className="text-3xl font-extrabold text-slate-900 dark:text-white">{asset.price} <span className="text-sm font-bold text-slate-500">KNT</span></p>
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-slate-500 dark:text-gray-400 font-bold uppercase tracking-widest mb-2">내 지갑 잔액</p>

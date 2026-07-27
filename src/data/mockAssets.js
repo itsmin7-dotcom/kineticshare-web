@@ -1,0 +1,80 @@
+export const mockAssets = [
+  {
+    id: "AST-8291",
+    name: "가사노동 최적화 관절 모션",
+    category: "가사/청소",
+    description: "실내 환경에서의 청소, 설거지, 물건 정리 등 정밀한 가사 노동에 최적화된 2족 보행 로봇용 관절 모션 데이터셋입니다.",
+    price: 1420,
+    dof: 24,
+    hz: 120,
+    artisan: "HomeRobotics.ai",
+    type: "bipedal",
+    motion: "locomotion",
+    env: "ros2"
+  },
+  {
+    id: "AST-3302",
+    name: "바리스타 커피 추출 모션",
+    category: "F&B/접객",
+    description: "핸드드립부터 에스프레소 머신 조작까지, 전문 바리스타의 미세한 손목 스냅과 파지(Grasping) 궤적을 캡처한 암(Arm) 데이터셋.",
+    price: 850,
+    dof: 7,
+    hz: 240,
+    artisan: "CafeTech_Labs",
+    type: "arm",
+    motion: "grasping",
+    env: "ros1"
+  },
+  {
+    id: "AST-9941",
+    name: "VIP 의전 및 에스코트",
+    category: "서비스/의전",
+    description: "부드러운 주행과 인간 친화적 제스처(인사, 안내, 문 열기)가 포함된 고급 서비스 4족 보행 로봇용 모션 텐서.",
+    price: 2100,
+    dof: 16,
+    hz: 60,
+    artisan: "PrimeService_Dynamics",
+    type: "quadruped",
+    motion: "locomotion",
+    env: "ros2"
+  },
+  {
+    id: "AST-1122",
+    name: "험지 탐사 자율 주행",
+    category: "탐사/산업",
+    description: "비포장 도로, 계단, 진흙탕 등 극복을 위한 4족 보행 시뮬레이션 기반 보행 최적화 데이터셋.",
+    price: 3200,
+    dof: 18,
+    hz: 200,
+    artisan: "Boston_Sim_Data",
+    type: "quadruped",
+    motion: "simulation",
+    env: "pytorch"
+  },
+  {
+    id: "AST-5582",
+    name: "물류 창고 드론 정밀 비행",
+    category: "물류/드론",
+    description: "랙(Rack) 사이를 고속으로 비행하며 바코드를 인식하는 드론용 6DoF 자세 제어 텐서 데이터.",
+    price: 980,
+    dof: 6,
+    hz: 500,
+    artisan: "AeroLogistics",
+    type: "drone",
+    motion: "locomotion",
+    env: "ros2"
+  },
+  {
+    id: "AST-7721",
+    name: "초정밀 반도체 칩 파지",
+    category: "산업/제조",
+    description: "마이크로미터 단위의 오차를 요구하는 반도체 웨이퍼 및 칩셋 핸들링용 6축 다관절 암(Arm) 시뮬레이션 데이터.",
+    price: 5400,
+    dof: 6,
+    hz: 1000,
+    artisan: "NanoPrecision",
+    type: "arm",
+    motion: "grasping",
+    env: "pytorch"
+  }
+];
