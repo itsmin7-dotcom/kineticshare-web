@@ -204,31 +204,41 @@ export default function MarketExplorer({ role, onNavigate }) {
 
           {/* 공급자(Provider) 전용 스튜디오 UI 복원 */}
           {role === 'provider' && (
-            <div className="mb-10">
-              <div className="flex justify-end mb-8">
-                <button className="px-8 py-4 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-extrabold shadow-[0_10px_20px_rgba(99,102,241,0.3)] hover:shadow-[0_15px_30px_rgba(99,102,241,0.5)] hover:-translate-y-1 transition-all duration-300 flex items-center gap-3">
-                  <span className="text-2xl font-normal leading-none">+</span> 새 로봇 궤적 데이터 업로드
+            <div className="mb-12">
+              <div className="flex justify-end mb-10">
+                <button className="px-10 py-5 rounded-full bg-gradient-to-r from-primary via-indigo-500 to-purple-600 text-white font-black text-lg shadow-[0_10px_30px_rgba(99,102,241,0.4)] hover:shadow-[0_15px_40px_rgba(99,102,241,0.6)] hover:-translate-y-1.5 transition-all duration-300 flex items-center gap-4 relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-white/20 -skew-x-12 -translate-x-full group-hover:animate-shimmer"></div>
+                  <span className="text-3xl font-normal leading-none relative z-10">+</span> 
+                  <span className="relative z-10">새 로봇 궤적 데이터 업로드</span>
                 </button>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/[0.05] rounded-[2rem] p-8 flex flex-col shadow-sm">
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">내가 등록한 데이터</p>
-                  <p className="text-4xl font-extrabold text-slate-900 dark:text-white mt-auto">2 <span className="text-lg text-slate-400 font-medium">개</span></p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="bg-white/60 dark:bg-black/40 backdrop-blur-3xl border border-slate-200/50 dark:border-white/10 rounded-[2.5rem] p-10 flex flex-col shadow-xl relative overflow-hidden group transition-all duration-500 hover:border-blue-500/50">
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-blue-500/10 rounded-full blur-[50px] group-hover:bg-blue-500/20 transition-colors duration-500"></div>
+                  <div className="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-6 shadow-inner relative z-10">📦</div>
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 relative z-10">내가 등록한 데이터</p>
+                  <p className="text-5xl font-black text-slate-900 dark:text-white mt-auto relative z-10">2 <span className="text-xl text-slate-400 font-bold ml-1">개</span></p>
                 </div>
-                <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/[0.05] rounded-[2rem] p-8 flex flex-col relative overflow-hidden group shadow-sm">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full blur-[40px] group-hover:bg-green-500/20 transition-colors"></div>
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 relative z-10">누적 판매 수익</p>
-                  <p className="text-4xl font-extrabold text-green-600 dark:text-green-400 mt-auto relative z-10">14,250 <span className="text-lg font-bold text-green-700/50 dark:text-green-500/50">KNT</span></p>
+                
+                <div className="bg-white/60 dark:bg-black/40 backdrop-blur-3xl border border-slate-200/50 dark:border-white/10 rounded-[2.5rem] p-10 flex flex-col shadow-xl relative overflow-hidden group transition-all duration-500 hover:border-green-500/50">
+                  <div className="absolute top-0 left-0 w-40 h-40 bg-green-500/10 rounded-full blur-[50px] group-hover:bg-green-500/20 transition-colors duration-500"></div>
+                  <div className="absolute bottom-0 right-0 w-40 h-40 bg-emerald-500/10 rounded-full blur-[50px] group-hover:bg-emerald-500/20 transition-colors duration-500"></div>
+                  <div className="w-12 h-12 rounded-2xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 mb-6 shadow-inner relative z-10">💎</div>
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 relative z-10">누적 판매 수익</p>
+                  <p className="text-5xl font-black text-green-600 dark:text-green-400 mt-auto relative z-10">14,250 <span className="text-xl font-bold text-green-700/50 dark:text-green-500/50 ml-1">KNT</span></p>
                 </div>
-                <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/[0.05] rounded-[2rem] p-8 flex flex-col shadow-sm">
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">승인 대기 중</p>
-                  <p className="text-4xl font-extrabold text-amber-500 dark:text-amber-400 mt-auto">1 <span className="text-lg text-slate-400 font-medium text-amber-600/50 dark:text-amber-500/50">건</span></p>
+                
+                <div className="bg-white/60 dark:bg-black/40 backdrop-blur-3xl border border-slate-200/50 dark:border-white/10 rounded-[2.5rem] p-10 flex flex-col shadow-xl relative overflow-hidden group transition-all duration-500 hover:border-amber-500/50">
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/10 rounded-full blur-[50px] group-hover:bg-amber-500/20 transition-colors duration-500"></div>
+                  <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 dark:text-amber-400 mb-6 shadow-inner relative z-10">⏳</div>
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 relative z-10">승인 대기 중</p>
+                  <p className="text-5xl font-black text-amber-500 dark:text-amber-400 mt-auto relative z-10">1 <span className="text-xl text-slate-400 font-bold text-amber-600/50 dark:text-amber-500/50 ml-1">건</span></p>
                 </div>
               </div>
               
-              <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-12 mb-6 flex items-center gap-3">
-                <div className="w-2 h-6 bg-indigo-500 rounded-full"></div>
+              <h3 className="text-3xl font-black text-slate-900 dark:text-white mt-16 mb-8 flex items-center gap-4">
+                <div className="w-2.5 h-8 bg-gradient-to-b from-primary to-purple-600 rounded-full shadow-[0_0_15px_rgba(99,102,241,0.5)]"></div>
                 내 데이터 자산 관리
               </h3>
             </div>
@@ -254,7 +264,21 @@ export default function MarketExplorer({ role, onNavigate }) {
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-tight">
                     {asset.name}
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 flex-1 line-clamp-2 leading-relaxed">
+                  
+                  {/* 추가된 메타데이터 칩(Badge) 영역 */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <span className="text-[10px] font-black tracking-wider px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-md border border-blue-200 dark:border-blue-800/50 shadow-sm">
+                      DoF: {asset.dof}
+                    </span>
+                    <span className="text-[10px] font-black tracking-wider px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-md border border-purple-200 dark:border-purple-800/50 shadow-sm">
+                      Hz: {asset.hz}
+                    </span>
+                    <span className="text-[10px] font-black tracking-wider px-2 py-1 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-gray-300 rounded-md border border-slate-200 dark:border-white/20 uppercase shadow-sm">
+                      {asset.env}
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 flex-1 line-clamp-2 leading-relaxed font-medium">
                     {asset.description}
                   </p>
                   
