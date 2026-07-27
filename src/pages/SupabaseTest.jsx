@@ -17,7 +17,7 @@ export default function SupabaseTest({ onBack, session, onOpenAuth }) {
     setErrorMsg('');
     const { data, error } = await supabase
       .from('posts')
-      .select('*, profiles(username)')
+      .select('*, profiles!author_id(username)')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -50,7 +50,7 @@ export default function SupabaseTest({ onBack, session, onOpenAuth }) {
       .insert([
         { title, content, author_id: session.user.id }
       ])
-      .select('*, profiles(username)');
+      .select('*, profiles!author_id(username)');
 
     if (error) {
       console.error('Error inserting post:', error);
