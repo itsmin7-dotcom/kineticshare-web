@@ -63,6 +63,26 @@ export default function MarketExplorer({ role, onNavigate }) {
     setSearchParams(newSearchParams, { replace: true });
   };
 
+  // 실시간 에셋 필터링 로직 (AND 조건 간, 다중 선택 OR 조건)
+  const filteredAssets = mockAssets.filter(asset => {
+    for (const key of Object.keys(FILTER_CATEGORIES)) {
+      const selectedVals = getFilterArray(key);
+      if (selectedVals.length > 0) {
+        const assetValue = key === 'form' ? asset.type : asset[key];
+        if (!selectedVals.includes(assetValue)) return false;
+      }
+    }
+    return true;
+  });
+
+  // 개별 필터 항목 카운트 계산
+  const getItemCount = (categoryKey, itemId) => {
+    return mockAssets.filter(asset => {
+      const assetValue = categoryKey === 'form' ? asset.type : asset[categoryKey];
+      return assetValue === itemId;
+    }).length;
+  };
+
   // 공통 LNB 필터 렌더링 컴포넌트
   const FilterSidebarContent = () => (
     <div className="space-y-8">
@@ -94,8 +114,9 @@ export default function MarketExplorer({ role, onNavigate }) {
                     }`}>
                       {selectedItems.includes(item.id) && <span className="text-white text-xs font-bold">✓</span>}
                     </div>
-                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors flex items-center gap-1.5">
                       {item.label}
+                      <span className="text-xs text-slate-400 font-normal">({getItemCount(key, item.id)})</span>
                     </span>
                   </label>
                 ))}
@@ -133,41 +154,49 @@ export default function MarketExplorer({ role, onNavigate }) {
 
         {/* 2. 메인 그리드 뷰 (Grid) */}
         <main className="flex-1">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {mockAssets?.map(asset => (
-              <div 
-                key={asset.id}
-                onClick={() => navigate(`/asset/${asset.id}`)}
-                className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/[0.05] rounded-3xl p-6 group hover:border-indigo-500/50 hover:shadow-2xl transition-all cursor-pointer flex flex-col"
-              >
-                <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
-                  🤖
-                </div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-tight">
-                  {asset.name}
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 flex-1 line-clamp-2 leading-relaxed">
-                  {asset.description}
-                </p>
-                
-                <div className="flex items-center justify-between border-t border-slate-100 dark:border-white/5 pt-4">
-                  <div className="flex items-center gap-1 font-mono text-sm font-bold text-slate-900 dark:text-green-400">
-                    <span>{asset.price}</span>
-                    <span className="text-[10px] text-slate-400">KNT</span>
+          {filteredAssets.length === 0 ? (
+            <div className="flex flex-col items-center justify-center min-h-[40vh] text-center bg-white/50 dark:bg-white/[0.02] rounded-3xl border border-slate-200 dark:border-white/[0.05]">
+              <span className="text-5xl mb-4 block opacity-50">🔍</span>
+              <h3 className="text-xl font-bold text-slate-700 dark:text-slate-300">조건에 맞는 에셋이 없습니다.</h3>
+              <p className="text-slate-500 mt-2">필터를 해제하거나 다른 카테고리를 선택해 보세요.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {filteredAssets.map(asset => (
+                <div 
+                  key={asset.id}
+                  onClick={() => navigate(`/asset/${asset.id}`)}
+                  className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/[0.05] rounded-3xl p-6 group hover:border-indigo-500/50 hover:shadow-2xl transition-all cursor-pointer flex flex-col"
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
+                    🤖
                   </div>
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/asset/${asset.id}`);
-                    }}
-                    className="text-xs font-bold px-4 py-2 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 hover:bg-indigo-600 hover:text-white transition-colors"
-                  >
-                    {role === 'provider' ? '관리' : '구매'}
-                  </button>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 leading-tight">
+                    {asset.name}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 flex-1 line-clamp-2 leading-relaxed">
+                    {asset.description}
+                  </p>
+                  
+                  <div className="flex items-center justify-between border-t border-slate-100 dark:border-white/5 pt-4">
+                    <div className="flex items-center gap-1 font-mono text-sm font-bold text-slate-900 dark:text-green-400">
+                      <span>{asset.price}</span>
+                      <span className="text-[10px] text-slate-400">KNT</span>
+                    </div>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/asset/${asset.id}`);
+                      }}
+                      className="text-xs font-bold px-4 py-2 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 hover:bg-indigo-600 hover:text-white transition-colors"
+                    >
+                      {role === 'provider' ? '관리' : '구매'}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </main>
       </div>
 
