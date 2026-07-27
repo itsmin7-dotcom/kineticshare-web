@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 
 const FILTER_CATEGORIES = {
   form: [
@@ -29,6 +29,7 @@ const MOCK_ASSETS = Array(12).fill(null).map((_, i) => ({
 }));
 
 export default function MarketExplorer({ role, onNavigate }) {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
@@ -86,6 +87,12 @@ export default function MarketExplorer({ role, onNavigate }) {
               <div className="space-y-3">
                 {items.map(item => (
                   <label key={item.id} className="flex items-center gap-3 cursor-pointer group">
+                    <input 
+                      type="checkbox" 
+                      className="hidden" 
+                      checked={selectedItems.includes(item.id)}
+                      onChange={() => handleFilterToggle(key, item.id)}
+                    />
                     <div className={`w-5 h-5 rounded flex items-center justify-center border transition-all ${
                       selectedItems.includes(item.id)
                         ? 'bg-indigo-500 border-indigo-500 dark:bg-indigo-500 dark:border-indigo-500'
@@ -133,9 +140,10 @@ export default function MarketExplorer({ role, onNavigate }) {
         {/* 2. 메인 그리드 뷰 (Grid) */}
         <main className="flex-1">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {MOCK_ASSETS.map(asset => (
+            {MOCK_ASSETS?.map(asset => (
               <div 
                 key={asset.id}
+                onClick={() => navigate(`/asset/${asset.id}`)}
                 className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/[0.05] rounded-3xl p-6 group hover:border-indigo-500/50 hover:shadow-2xl transition-all cursor-pointer flex flex-col"
               >
                 <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
@@ -156,7 +164,7 @@ export default function MarketExplorer({ role, onNavigate }) {
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();
-                      // 나중에 상세 페이지 라우팅 적용
+                      navigate(`/asset/${asset.id}`);
                     }}
                     className="text-xs font-bold px-4 py-2 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 hover:bg-indigo-600 hover:text-white transition-colors"
                   >
